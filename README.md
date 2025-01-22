@@ -25,3 +25,11 @@ spring boot 와 jpa, querydsl 을 사용하여 구현합니다.
 - MySQL 9.1.0
 - Gradle
 - Thymeleaf
+
+## Environment Variables
+프로젝트 실행을 위해 다음 환경변수가 필요합니다:
+- DB_HOST: 데이터베이스 호스트 주소
+- DB_NAME_PROD: 운영 데이터베이스 이름
+- DB_NAME_TEST: 테스트 데이터베이스 이름
+- DB_USERNAME: 데이터베이스 사용자 이름
+- DB_PASSWORD: 데이터베이스 비밀번호
