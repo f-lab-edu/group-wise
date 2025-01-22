@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: group-wise
+  profiles:
+    active: local
+  jpa:
+    hibernate:
+#      ddl-auto: create-drop
+      ddl-auto: create
+    properties:
+      hibernate:
+#        show_sql: true
+        format_sql: true
+
+logging:
+  level:
+    root: warn
+    org:
+      springframework:
+        web: debug        # 웹 요청/응답 로깅
+        security: debug   # 스프링 시큐리티 로깅
+      hibernate:
+        SQL: debug       # 실행되는 모든 SQL문 출력
+        type:
+          descriptor:
+            sql: trace   # SQL 바인딩되는 파라미터 값 출력
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:3306/${DB_NAME_PROD}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:3306/${DB_NAME_TEST}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
