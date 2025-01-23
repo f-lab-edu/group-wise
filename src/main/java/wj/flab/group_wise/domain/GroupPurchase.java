@@ -20,12 +20,12 @@ import java.util.List;
 public class GroupPurchase { // 공동 구매 그룹
 
     enum GroupPurchaseStatus {
-        WAITING,    // 시작일 전
-        PROGRESS,   // 진행중 (최소 진행 인원 미달성)
-        SUCCESS,    // 진행중 (최소 진행 인원 달성)
-        COMPLETED,  // 마감완료 (마감일까지 최소 진행 인원 달성하여 주문 완료)
-        FAIL,       // 마감실패 (마감일까지 최소 진행 인원 미달성으로 인한 실패)
-        CANCELED    // 중도취소
+        PENDING,        // 시작일 전
+        ONGOING,        // 진행 중 (최소 인원 미달)
+        FULFILLED,      // 진행 중 (최소 인원 달성)
+        CLOSED_SUCCESS, // 마감 (목표 달성)
+        CLOSED_FAILURE, // 마감 (목표 미달)
+        CANCELED        // 중도취소
     }
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
