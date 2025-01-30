@@ -33,7 +33,7 @@ public class Product {
 
     private String seller;                      // 판매사
     private int availableQuantity;              // 공구 가능한 수량
-    private int deliveryFee;                    // 배송비
+//    private int deliveryFee;                    // 배송비
 
 //    private String description;                 // 상품 설명
 //    private String thumbnailUrl;                // 썸네일 URL
@@ -44,12 +44,11 @@ public class Product {
     protected Product() {
     }
 
-    public Product(String name, int basePrice, SaleStatus saleStatus, String seller, int availableQuantity, int deliveryFee) {
+    public Product(String name, int basePrice, SaleStatus saleStatus, String seller, int availableQuantity) {
         this.name = name;
         this.basePrice = basePrice;
         this.saleStatus = saleStatus;
         this.seller = seller;
         this.availableQuantity = availableQuantity;
-        this.deliveryFee = deliveryFee;
     }
 }
