@@ -18,7 +18,7 @@ public class ProductAttribute {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;                        // 상품의 선택항목명 (ex. 색상, 사이즈 등)
+    private String attributeName;                // 상품의 선택항목명 (ex. 색상, 사이즈 등)
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")

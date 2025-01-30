@@ -23,7 +23,7 @@ public class ProductAttributeValue {
     @JoinColumn(name = "product_attribute_id")
     private ProductAttribute productAttribute;
 
-    private String value;                           // 상품의 선택항목 값 (ex. 빨강, M 등)
+    private String attributeValue;                  // 상품의 선택항목 값 (ex. 빨강, M 등)
     private int additionalPrice;                    // 추가금액
 
     @ManyToOne(fetch = FetchType.LAZY)
