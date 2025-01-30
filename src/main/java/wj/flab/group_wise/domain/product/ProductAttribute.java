@@ -28,8 +28,7 @@ public class ProductAttribute {
         mappedBy = "productAttribute",
         fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
+        orphanRemoval = true )
     private List<ProductAttributeValue> values;    // 옵션목록
 
     @Embedded

@@ -1,6 +1,8 @@
 package wj.flab.group_wise.domain.category;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,11 +20,16 @@ public class Category {
     private Long id;
     private String name;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Category parent;
 
-    @OneToMany(mappedBy = "parent")
+    @OneToMany(
+        mappedBy = "parent",
+        fetch = FetchType.LAZY,
+        cascade = CascadeType.ALL, // 부모 엔티티가 삭제되면 자식 엔티티도 삭제
+        orphanRemoval = true       // 부모와 연관관계가 끊어지면 자식 엔티티도 삭제
+    )
     private List<Category> children = new ArrayList<>();
 
     public void addChildren(Category category) {

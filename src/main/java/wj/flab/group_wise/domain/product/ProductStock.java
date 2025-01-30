@@ -24,7 +24,9 @@ public class ProductStock implements Purchasable {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @OneToMany(mappedBy = "productStock")
+    @OneToMany(
+        mappedBy = "productStock",
+        fetch = FetchType.LAZY )
     private List<ProductAttributeValue> values = new ArrayList<>(); // 상품 선택 항목에 대해 선택된 값
 
     @Override

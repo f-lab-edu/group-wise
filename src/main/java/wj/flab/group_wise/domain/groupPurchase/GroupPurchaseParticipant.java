@@ -2,6 +2,7 @@ package wj.flab.group_wise.domain.groupPurchase;
 
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -19,15 +20,15 @@ public class GroupPurchaseParticipant { // 공동구매 참여자와 구매 정�
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_purchase_id")
     private GroupPurchase groupPurchase;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     private ProductStock selectedProduct;   // 선택한 상품
     private Integer quantity;               // 구매 수량
 
