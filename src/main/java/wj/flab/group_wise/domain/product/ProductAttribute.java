@@ -1,7 +1,6 @@
 package wj.flab.group_wise.domain.product;
 
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -14,7 +13,7 @@ import java.util.List;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 
 @Entity
-public class ProductAttribute {
+public class ProductAttribute extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,8 +29,5 @@ public class ProductAttribute {
         cascade = CascadeType.ALL,
         orphanRemoval = true )
     private List<ProductAttributeValue> values;    // 옵션목록
-
-    @Embedded
-    private BaseTimeEntity baseTimeEntity;
 
 }

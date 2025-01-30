@@ -1,6 +1,5 @@
 package wj.flab.group_wise.domain.product;
 
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -13,7 +12,7 @@ import wj.flab.group_wise.domain.BaseTimeEntity;
 
 @Entity
 @Getter @Setter
-public class Product {
+public class Product extends BaseTimeEntity {
 
     public enum SaleStatus {
         SALE,       // 판매중
@@ -37,9 +36,6 @@ public class Product {
 
 //    private String description;                 // 상품 설명
 //    private String thumbnailUrl;                // 썸네일 URL
-
-    @Embedded
-    private BaseTimeEntity baseTimeEntity;
 
     protected Product() {
     }

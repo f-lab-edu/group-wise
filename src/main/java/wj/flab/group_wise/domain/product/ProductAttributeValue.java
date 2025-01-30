@@ -1,6 +1,5 @@
 package wj.flab.group_wise.domain.product;
 
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -14,7 +13,7 @@ import wj.flab.group_wise.domain.BaseTimeEntity;
 
 @Entity
 @Getter @Setter
-public class ProductAttributeValue {
+public class ProductAttributeValue extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -29,8 +28,5 @@ public class ProductAttributeValue {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_stock_id")
     private ProductStock productStock;
-
-    @Embedded
-    private BaseTimeEntity baseTimeEntity;
 
 }

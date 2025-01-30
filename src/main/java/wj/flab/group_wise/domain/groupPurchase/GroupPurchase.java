@@ -1,6 +1,5 @@
 package wj.flab.group_wise.domain.groupPurchase;
 
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -17,8 +16,7 @@ import wj.flab.group_wise.domain.BaseTimeEntity;
 import wj.flab.group_wise.domain.product.Product;
 
 @Entity
-public class
-GroupPurchase { // 공동구매 그룹
+public class GroupPurchase extends BaseTimeEntity { // 공동구매 그룹
 
     @Getter
     @RequiredArgsConstructor
@@ -53,8 +51,5 @@ GroupPurchase { // 공동구매 그룹
 
     @Enumerated(EnumType.STRING)
     private Status status;                  // 진행 상태
-
-    @Embedded
-    private BaseTimeEntity baseTimeEntity;
 
 }

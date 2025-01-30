@@ -10,9 +10,10 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
+import wj.flab.group_wise.domain.BaseTimeEntity;
 
 @Entity
-public class ProductStock implements Purchasable {
+public class ProductStock extends BaseTimeEntity implements Purchasable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

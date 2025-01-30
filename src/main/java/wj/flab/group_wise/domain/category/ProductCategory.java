@@ -7,10 +7,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import wj.flab.group_wise.domain.BaseTimeEntity;
 import wj.flab.group_wise.domain.product.Product;
 
 @Entity
-public class ProductCategory {
+public class ProductCategory extends BaseTimeEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

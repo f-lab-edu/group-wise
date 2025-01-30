@@ -1,6 +1,5 @@
 package wj.flab.group_wise.domain.groupPurchase;
 
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -14,7 +13,7 @@ import wj.flab.group_wise.domain.Member;
 import wj.flab.group_wise.domain.product.ProductStock;
 
 @Entity
-public class GroupPurchaseParticipant { // 공동구매 참여자와 구매 정보
+public class GroupPurchaseParticipant extends BaseTimeEntity { // 공동구매 참여자와 구매 정보
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,8 +33,5 @@ public class GroupPurchaseParticipant { // 공동구매 참여자와 구매 정�
 
     private boolean isWishlist;                 // 관심 여부 (찜)
     private boolean hasParticipated;            // 구매 참여 여부
-
-    @Embedded
-    private BaseTimeEntity baseTimeEntity;
 
 }
