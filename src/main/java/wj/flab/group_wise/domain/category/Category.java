@@ -9,8 +9,10 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.EqualsAndHashCode;
 
 @Entity
+@EqualsAndHashCode(of = "name")
 public class Category {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,4 +24,16 @@ public class Category {
 
     @OneToMany(mappedBy = "parent")
     private List<Category> children = new ArrayList<>();
+
+    public void addChildren(Category category) {
+        if (category == null) {
+            throw new IllegalArgumentException("category is null");
+        }
+
+        if (this.children.contains(category)) {
+            return;
+        }
+
+        this.children.add(category);
+    }
 }

@@ -1,6 +1,5 @@
-package wj.flab.group_wise.domain;
+package wj.flab.group_wise.domain.groupPurchase;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,13 +10,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-public class GroupPurchase { // 공동 구매 그룹
+public class
+GroupPurchase { // 공동 구매 그룹
 
     enum GroupPurchaseStatus {
         PENDING,        // 시작일 전
@@ -35,16 +34,16 @@ public class GroupPurchase { // 공동 구매 그룹
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;            // 상품
-    private int discountRate;           // 할인율
-    private int purchasePrice;          // 공구 가격 (상품 원가와 다를 수 있음)
-    private int minCount;               // 최소 진행 인원
-    private int currentCount;           // 현재 참여 인원
+    private Integer discountRate;           // 할인율
+    private Integer purchasePrice;          // 공구 (시작) 가격 (상품 원가와 다를 수 있음)
+    private Integer minCount;               // 최소 진행 인원
+    private Integer currentCount;           // 현재 참여 인원
 
     private LocalDateTime startDate;    // 시작일
     private LocalDateTime endDate;      // 종료일
 
     @OneToMany(mappedBy = "groupPurchase")// 참여 회원
-    private List<GroupPurchaseMember> groupPurchaseMembers = new ArrayList<>();
+    private List<GroupPurchaseParticipant> groupPurchaseParticipants = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private GroupPurchaseStatus status; // 상태 (대기, 진행중, 종료)
