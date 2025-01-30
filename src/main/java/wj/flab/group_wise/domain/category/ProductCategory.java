@@ -1,4 +1,4 @@
-package wj.flab.group_wise.domain;
+package wj.flab.group_wise.domain.category;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
