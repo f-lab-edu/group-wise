@@ -1,13 +1,13 @@
 spring:
   application:
     name: group-wise
-#  profiles:
-#    active: local
-  datasource:
-    url: jdbc:h2:tcp://localhost/~/test
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+  profiles:
+    active: local
+#  datasource:
+#    url: jdbc:h2:tcp://localhost/~/test
+#    username: sa
+#    password:
+#    driver-class-name: org.h2.Driver
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -30,16 +30,16 @@ logging:
           descriptor:
             sql: trace   # SQL 바인딩되는 파라미터 값 출력
 
-#---
-#spring:
-#  config:
-#    activate:
-#      on-profile: local
-#  datasource:
-#    url: jdbc:mysql://${DB_HOST}:3306/${DB_NAME_PROD}
-#    username: ${DB_USERNAME}
-#    password: ${DB_PASSWORD}
-#    driver-class-name: com.mysql.cj.jdbc.Driver
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:3306/${DB_NAME_PROD}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
 #---
 #spring:
 #  config:
