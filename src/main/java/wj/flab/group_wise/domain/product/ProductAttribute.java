@@ -9,14 +9,21 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.validation.constraints.NotBlank;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 
 @Entity
+@Getter
 public class ProductAttribute extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @NotBlank
+    @Setter
     private String attributeName;                // 상품의 선택항목명 (ex. 색상, 사이즈 등)
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -29,5 +36,9 @@ public class ProductAttribute extends BaseTimeEntity {
         cascade = CascadeType.ALL,
         orphanRemoval = true )
     private List<ProductAttributeValue> values;    // 옵션목록
+
+    protected ProductAttribute() {
+    }
+
 
 }

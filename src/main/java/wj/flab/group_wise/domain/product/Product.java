@@ -6,8 +6,10 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Range;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 
 @Entity
@@ -24,27 +26,83 @@ public class Product extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;                        // 상품명
+    @NotBlank
+    @Setter
+    private String seller;                      // 판매사
+
+    @NotBlank
+    @Setter
+    private String productName;                 // 상품명
+
+    @Range(min = 0)
+    @Setter
     private int basePrice;                      // 기준가(정가)
+
+    @Range(min = 0)
+    private int availableQuantity;              // 공구 가능한 수량
 
     @Enumerated(EnumType.STRING)
     private SaleStatus saleStatus;              // 판매상태
 
-    private String seller;                      // 판매사
-    private int availableQuantity;              // 공구 가능한 수량
-//    private int deliveryFee;                    // 배송비
-
-//    private String description;                 // 상품 설명
-//    private String thumbnailUrl;                // 썸네일 URL
+    public static Product createProduct(String seller, String productName, int basePrice, int availableQuantity) {
+        // 판매상태와 공구 가능 수량 유효성 검사 필요
+        return new Product(seller, productName, basePrice, availableQuantity);
+    }
 
     protected Product() {
     }
 
-    public Product(String name, int basePrice, SaleStatus saleStatus, String seller, int availableQuantity) {
-        this.name = name;
-        this.basePrice = basePrice;
-        this.saleStatus = saleStatus;
+    private Product(String seller, String productName, int basePrice, int availableQuantity) {
         this.seller = seller;
+        this.productName = productName;
+        this.basePrice = basePrice;
         this.availableQuantity = availableQuantity;
+        setSaleStatusAsQuantity(availableQuantity);
     }
+
+    private void setSaleStatusAsQuantity(int availableQuantity) {
+        if (availableQuantity == 0) {
+            this.saleStatus = SaleStatus.SOLD_OUT;
+        } else {
+            this.saleStatus = SaleStatus.SALE;
+        }
+    }
+
+    public void changeAvailableQuantity(int quantity) {
+        this.availableQuantity = quantity;
+        setSaleStatusAsQuantity(availableQuantity);
+    }
+
+    public void increaseAvailableQuantity(int quantity) {
+        this.availableQuantity += quantity;
+        setSaleStatusAsQuantity(availableQuantity);
+    }
+
+    public void decreaseAvailableQuantity(int quantity) {
+        if (availableQuantity - quantity < 0) {
+            throw new IllegalArgumentException("재고가 부족합니다.");
+        }
+        this.availableQuantity -= quantity;
+        setSaleStatusAsQuantity(availableQuantity);
+    }
+
+    public void changeSaleStatus(SaleStatus saleStatus) {
+        this.saleStatus = saleStatus;
+        switch (saleStatus) {
+            case SALE:
+                if (availableQuantity == 0) {
+                    throw new IllegalArgumentException("재고가 부족합니다.");
+                }
+                break;
+            case SOLD_OUT:
+                if (availableQuantity > 0) {
+                    throw new IllegalArgumentException("재고가 남아있습니다.");
+                }
+                break;
+            case DISCONTINUE:
+                break;
+        }
+    }
+
+
 }
