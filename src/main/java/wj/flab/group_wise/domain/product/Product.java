@@ -16,7 +16,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
 import wj.flab.group_wise.domain.BaseTimeEntity;
-import wj.flab.group_wise.dto.ProductAddDto.ProductAttributeDto;
 
 @Entity
 @Getter @Setter
@@ -57,21 +56,8 @@ public class Product extends BaseTimeEntity {
         orphanRemoval = true )
     private List<ProductAttribute> productAttributes = new ArrayList<>();
 
-    public static Product createProduct(
-        String seller, String productName, int basePrice, int availableQuantity, List<ProductAttributeDto> productAttributeDtos) {
-        Product product = new Product(seller, productName, basePrice, availableQuantity);
-
-        productAttributeDtos.forEach(productAttributeDto -> {
-            ProductAttribute productAttribute = new ProductAttribute(productAttributeDto.getAttributeName(), product); // 연관관계 주인 엔티티에 관계 설정
-            productAttributeDto.getProductAttributeValues().forEach(productAttributeValueDto ->
-                productAttribute.addValue( // 연관관계 주인 엔티티에 관계 설정
-                    productAttributeValueDto.getAttributeValue(), productAttributeValueDto.getAdditionalPrice()));
-
-            // this 엔티티에 관계 설정
-            product.getProductAttributes().add(productAttribute);
-        });
-
-        return product;
+    public static Product createProduct(String seller, String productName, int basePrice, int availableQuantity) {
+        return new Product(seller, productName, basePrice, availableQuantity);
     }
 
     protected Product() {

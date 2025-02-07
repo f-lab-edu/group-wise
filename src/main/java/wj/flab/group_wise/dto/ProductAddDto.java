@@ -11,6 +11,7 @@ import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
 
 @RequiredArgsConstructor
+@Getter
 public class ProductAddDto {
 
     @Getter
@@ -47,9 +48,9 @@ public class ProductAddDto {
     @Enumerated(EnumType.STRING)
     private final SaleStatus saleStatus;              // 판매상태
 
-    private final List<ProductAttributeDto> productAttributes;    // 상품의 선택항목명과 값
+    private final List<ProductAttributeDto> productAttributeDtos;    // 상품의 선택항목명과 값
 
     public Product toEntity() {
-        return Product.createProduct(seller, productName, basePrice, availableQuantity, productAttributes);
+        return Product.createProduct(seller, productName, basePrice, availableQuantity);
     }
 }
