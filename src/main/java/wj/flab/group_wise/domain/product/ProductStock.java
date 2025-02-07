@@ -19,7 +19,7 @@ public class ProductStock extends BaseTimeEntity implements Purchasable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer stockQuantity;
+    private int stockQuantity;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
@@ -28,13 +28,13 @@ public class ProductStock extends BaseTimeEntity implements Purchasable {
     @OneToMany(
         mappedBy = "productStock",
         fetch = FetchType.LAZY )
-    private List<ProductAttributeValue> values = new ArrayList<>(); // 상품 선택 항목에 대해 선택된 값
+    private List<ProductAttributeValueStock> values = new ArrayList<>(); // 상품 선택 항목에 대해 선택된 값
 
     @Override
     public int getPrice() {
         return product.getBasePrice()
             + values.stream()
-                .mapToInt(ProductAttributeValue::getAdditionalPrice)
+                .mapToInt(v -> v.getProductAttributeValue().getAdditionalPrice())
                 .sum();
     }
 

@@ -26,6 +26,8 @@ public class ProductService {
 
     public void updateProduct() {
         // todo 현재 공동구매가 진행 중인 상품인 경우, 특정 필드 수정이 불가능하도록 예외 처리 필요
+        // 변경 가능한 entity
+        // Product, ProductAttribute, ProductAttributeValue, ProductStock
 
     }
 

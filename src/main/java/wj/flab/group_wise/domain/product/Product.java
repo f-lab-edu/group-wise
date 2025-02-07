@@ -1,16 +1,22 @@
 package wj.flab.group_wise.domain.product;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotBlank;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
 import wj.flab.group_wise.domain.BaseTimeEntity;
+import wj.flab.group_wise.dto.ProductAddDto.ProductAttributeDto;
 
 @Entity
 @Getter @Setter
@@ -44,9 +50,28 @@ public class Product extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private SaleStatus saleStatus;              // 판매상태
 
-    public static Product createProduct(String seller, String productName, int basePrice, int availableQuantity) {
-        // 판매상태와 공구 가능 수량 유효성 검사 필요
-        return new Product(seller, productName, basePrice, availableQuantity);
+    @OneToMany(
+        mappedBy = "product",
+        fetch = FetchType.LAZY,
+        cascade = CascadeType.ALL,
+        orphanRemoval = true )
+    private List<ProductAttribute> productAttributes = new ArrayList<>();
+
+    public static Product createProduct(
+        String seller, String productName, int basePrice, int availableQuantity, List<ProductAttributeDto> productAttributeDtos) {
+        Product product = new Product(seller, productName, basePrice, availableQuantity);
+
+        productAttributeDtos.forEach(productAttributeDto -> {
+            ProductAttribute productAttribute = new ProductAttribute(productAttributeDto.getAttributeName(), product); // 연관관계 주인 엔티티에 관계 설정
+            productAttributeDto.getProductAttributeValues().forEach(productAttributeValueDto ->
+                productAttribute.addValue( // 연관관계 주인 엔티티에 관계 설정
+                    productAttributeValueDto.getAttributeValue(), productAttributeValueDto.getAdditionalPrice()));
+
+            // this 엔티티에 관계 설정
+            product.getProductAttributes().add(productAttribute);
+        });
+
+        return product;
     }
 
     protected Product() {
