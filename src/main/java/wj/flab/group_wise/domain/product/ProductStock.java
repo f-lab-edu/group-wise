@@ -1,5 +1,6 @@
 package wj.flab.group_wise.domain.product;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -8,27 +9,39 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Getter;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 
 @Entity
+@Getter
 public class ProductStock extends BaseTimeEntity implements Purchasable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int stockQuantity;
+    private Integer stockQuantity;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
+    @NotNull
     private Product product;
 
     @OneToMany(
         mappedBy = "productStock",
-        fetch = FetchType.LAZY )
+        fetch = FetchType.LAZY,
+        cascade = CascadeType.ALL,
+        orphanRemoval = true )
     private List<ProductAttributeValueStock> values = new ArrayList<>(); // 상품 선택 항목에 대해 선택된 값
+
+    protected ProductStock() {}
+
+    protected ProductStock(Product product) {
+        this.product = product;
+    }
 
     @Override
     public int getPrice() {

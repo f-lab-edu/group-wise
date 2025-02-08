@@ -16,7 +16,7 @@ import wj.flab.group_wise.domain.BaseTimeEntity;
 
 @Entity
 @Getter
-@EqualsAndHashCode(of = {"productAttribute", "attributeValue"})
+@EqualsAndHashCode(of = {"productAttribute", "attributeValue"}, callSuper = false)
 public class ProductAttributeValue extends BaseTimeEntity {
 
     protected ProductAttributeValue() {}
@@ -25,7 +25,6 @@ public class ProductAttributeValue extends BaseTimeEntity {
         this.productAttribute = productAttribute;
         this.attributeValue = attributeValue;
         this.additionalPrice = additionalPrice;
-        // todo setProductStock();
     }
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,10 +41,6 @@ public class ProductAttributeValue extends BaseTimeEntity {
     @Range(min = 0)
     private int additionalPrice;                    // 추가금액
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "product_stock_id")
-//    private ProductStock productStock;
-
     protected void unbindProductAttribute() {
         this.productAttribute = null;
     }
@@ -53,12 +48,5 @@ public class ProductAttributeValue extends BaseTimeEntity {
     protected void update(String attributeValue, int additionalPrice) {
         this.attributeValue = attributeValue;
         this.additionalPrice = additionalPrice;
-        // todo setProductStock();
     }
-
-    // todo
-//    private void setProductStock() {
-//        this.productStock = new ProductStock();
-//    }
-
 }

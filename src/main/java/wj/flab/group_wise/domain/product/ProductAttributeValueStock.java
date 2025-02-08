@@ -29,5 +29,10 @@ public class ProductAttributeValueStock extends BaseTimeEntity {
     @NotNull
     private ProductStock productStock;
 
+    protected ProductAttributeValueStock() {}
 
+    protected ProductAttributeValueStock(ProductAttributeValue productAttributeValue, ProductStock productStock) {
+        this.productAttributeValue = productAttributeValue;
+        this.productStock = productStock;
+    }
 }
