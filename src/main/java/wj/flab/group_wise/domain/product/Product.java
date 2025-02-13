@@ -43,9 +43,6 @@ public class Product extends BaseTimeEntity {
     @Setter
     private int basePrice;                      // 기준가(정가)
 
-    @Range(min = 0)
-    private int availableQuantity;              // 공구 가능한 수량
-
     @Enumerated(EnumType.STRING)
     private SaleStatus saleStatus;              // 판매상태
 
@@ -63,63 +60,17 @@ public class Product extends BaseTimeEntity {
         orphanRemoval = true )
     private List<ProductStock> productStocks = new ArrayList<>();           // 상품의 선택항목 조합에 따른 재고
 
-    public static Product createProduct(String seller, String productName, int basePrice, int availableQuantity) {
-        return new Product(seller, productName, basePrice, availableQuantity);
+    public static Product createProduct(String seller, String productName, int basePrice) {
+        return new Product(seller, productName, basePrice);
     }
 
     protected Product() {
     }
 
-    private Product(String seller, String productName, int basePrice, int availableQuantity) {
+    private Product(String seller, String productName, int basePrice) {
         this.seller = seller;
         this.productName = productName;
         this.basePrice = basePrice;
-        this.availableQuantity = availableQuantity;
-        setSaleStatusAsQuantity(availableQuantity);
-    }
-
-    private void setSaleStatusAsQuantity(int availableQuantity) {
-        if (availableQuantity == 0) {
-            this.saleStatus = SaleStatus.SOLD_OUT;
-        } else {
-            this.saleStatus = SaleStatus.SALE;
-        }
-    }
-
-    public void changeAvailableQuantity(int quantity) {
-        this.availableQuantity = quantity;
-        setSaleStatusAsQuantity(availableQuantity);
-    }
-
-    public void increaseAvailableQuantity(int quantity) {
-        this.availableQuantity += quantity;
-        setSaleStatusAsQuantity(availableQuantity);
-    }
-
-    public void decreaseAvailableQuantity(int quantity) {
-        if (availableQuantity - quantity < 0) {
-            throw new IllegalArgumentException("재고가 부족합니다.");
-        }
-        this.availableQuantity -= quantity;
-        setSaleStatusAsQuantity(availableQuantity);
-    }
-
-    public void changeSaleStatus(SaleStatus saleStatus) {
-        this.saleStatus = saleStatus;
-        switch (saleStatus) {
-            case SALE:
-                if (availableQuantity == 0) {
-                    throw new IllegalArgumentException("재고가 부족합니다.");
-                }
-                break;
-            case SOLD_OUT:
-                if (availableQuantity > 0) {
-                    throw new IllegalArgumentException("재고가 남아있습니다.");
-                }
-                break;
-            case DISCONTINUE:
-                break;
-        }
     }
 
     public void addProductAttribute(ProductAttribute productAttribute) {

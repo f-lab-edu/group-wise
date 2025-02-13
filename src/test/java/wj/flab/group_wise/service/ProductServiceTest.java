@@ -29,7 +29,6 @@ class ProductServiceTest {
             "seller",
             "productName",
             10000,
-            10,
             SaleStatus.SALE,
             List.of(
                 new ProductAttributeDto(

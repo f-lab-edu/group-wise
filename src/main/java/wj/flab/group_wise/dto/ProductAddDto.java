@@ -42,15 +42,12 @@ public class ProductAddDto {
     @Range(min = 0)
     private final int basePrice;                      // 기준가(정가)
 
-    @Range(min = 0)
-    private final int availableQuantity;              // 공구 가능한 수량
-
     @Enumerated(EnumType.STRING)
     private final SaleStatus saleStatus;              // 판매상태
 
     private final List<ProductAttributeDto> productAttributeDtos;    // 상품의 선택항목명과 값
 
     public Product toEntity() {
-        return Product.createProduct(seller, productName, basePrice, availableQuantity);
+        return Product.createProduct(seller, productName, basePrice);
     }
 }
