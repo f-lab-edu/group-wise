@@ -16,10 +16,11 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import wj.flab.group_wise.domain.BaseTimeEntity;
+import wj.flab.group_wise.util.ListUtils.ContainerOfValues;
 
 @Entity
 @Getter
-public class ProductAttribute extends BaseTimeEntity {
+public class ProductAttribute extends BaseTimeEntity implements ContainerOfValues<ProductAttributeValue> {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
