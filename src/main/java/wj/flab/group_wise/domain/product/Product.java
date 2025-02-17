@@ -16,6 +16,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
 import wj.flab.group_wise.domain.BaseTimeEntity;
+import wj.flab.group_wise.util.ListUtils;
 
 @Entity
 @Getter @Setter
@@ -78,47 +79,17 @@ public class Product extends BaseTimeEntity {
     }
 
     public void generateProductStocks() {
-        if (getProductAttributes().isEmpty()) {
-            throw new IllegalArgumentException("상품 선택 항목(productAttributes)이 존재하지 않습니다.");
-        }
-        generateProductStocks(productAttributes, 0, new ArrayList<>());
-    }
-
-    private void generateProductStocks(
-        List<ProductAttribute> attributes,                      // 상품의 선택 항목 리스트 (색상, 사이즈, ...)
-        int currentAttrIdx,                                     // 현재 선택 항목 인덱스
-        List<ProductAttributeValueStock> currentCombination) {  // 현재까지 선택한 조합
-
-        // 모든 속성에 대한 선택이 완료되면
-        if (currentAttrIdx == attributes.size()) {
-            // 새로운 ProductStock 생성
+        if (productAttributes.isEmpty()) {
             ProductStock newStock = new ProductStock(this);
-
-            // 현재까지의 조합을 새 ProductStock에 추가
-            for (ProductAttributeValueStock valueStock : currentCombination) {
-                newStock.getValues().add(new ProductAttributeValueStock(
-                    valueStock.getProductAttributeValue(),
-                    newStock
-                ));
-            }
-
-            // Product의 재고 리스트에 추가
-            this.productStocks.add(newStock);
-            return;
-        }
-
-        ProductAttribute currentAttr = attributes.get(currentAttrIdx);
-        for (ProductAttributeValue value : currentAttr.getValues()) {
-            // 현재 값으로 ProductAttributeValueStock 생성 (임시)
-            ProductAttributeValueStock valueStock = new ProductAttributeValueStock(value, null);
-            currentCombination.add(valueStock);
-
-            // 다음 속성으로 진행
-            generateProductStocks(attributes, currentAttrIdx + 1, currentCombination);
-
-            // 백트래킹: 마지막 선택 제거
-            currentCombination.remove(currentCombination.size() - 1);
+            productStocks.add(newStock);
+        } else {
+            List<List<ProductAttributeValue>> lists = ListUtils.cartesianProduct(productAttributes);
+            lists.forEach(combination -> {
+                ProductStock newStock = new ProductStock(this, combination);
+                productStocks.add(newStock);
+            });
         }
     }
+
 
 }

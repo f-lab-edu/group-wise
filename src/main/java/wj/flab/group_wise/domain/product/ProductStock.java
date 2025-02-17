@@ -43,6 +43,15 @@ public class ProductStock extends BaseTimeEntity implements Purchasable {
         this.product = product;
     }
 
+    protected ProductStock(Product product, List<ProductAttributeValue> values) {
+        this.product = product;
+        initializeStockValues(values);
+    }
+
+    private void initializeStockValues(List<ProductAttributeValue> values) {
+        values.forEach(v -> this.values.add(new ProductAttributeValueStock(v, this)));
+    }
+
     @Override
     public int getPrice() {
         return product.getBasePrice()
