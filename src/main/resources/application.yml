@@ -1,13 +1,8 @@
 spring:
   application:
     name: group-wise
-#  profiles:
-#    active: local
-  datasource:
-    url: jdbc:h2:tcp://localhost/~/test
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+  profiles:
+    active: local
   jpa:
     hibernate:
 #      ddl-auto: create-drop
@@ -16,6 +11,8 @@ spring:
       hibernate:
 #        show_sql: true
         format_sql: true
+        highlight_sql: true        # SQL 하이라이트 추가
+        use_sql_comments: true     # JPQL 쿼리 주석 추가
 
 logging:
   level:
@@ -26,27 +23,7 @@ logging:
         security: debug   # 스프링 시큐리티 로깅
       hibernate:
         SQL: debug       # 실행되는 모든 SQL문 출력
-        type:
-          descriptor:
-            sql: trace   # SQL 바인딩되는 파라미터 값 출력
+        orm.jdbc.bind: trace  # 바인딩 파라미터 출력
+    jdbc:
+        connection: debug
 
-#---
-#spring:
-#  config:
-#    activate:
-#      on-profile: local
-#  datasource:
-#    url: jdbc:mysql://${DB_HOST}:3306/${DB_NAME_PROD}
-#    username: ${DB_USERNAME}
-#    password: ${DB_PASSWORD}
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#---
-#spring:
-#  config:
-#    activate:
-#      on-profile: test
-#  datasource:
-#    url: jdbc:mysql://${DB_HOST}:3306/${DB_NAME_TEST}
-#    username: ${DB_USERNAME}
-#    password: ${DB_PASSWORD}
-#    driver-class-name: com.mysql.cj.jdbc.Driver

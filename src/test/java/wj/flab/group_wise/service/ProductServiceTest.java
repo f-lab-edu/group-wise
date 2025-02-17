@@ -1,18 +1,24 @@
 package wj.flab.group_wise.service;
 
 import java.util.List;
+import java.util.stream.IntStream;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+import wj.flab.group_wise.domain.exception.ProductAlreadyExistsException;
 import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
-import wj.flab.group_wise.domain.product.ProductAttribute;
 import wj.flab.group_wise.dto.ProductAddDto;
 import wj.flab.group_wise.dto.ProductAddDto.ProductAttributeDto;
+import wj.flab.group_wise.dto.ProductAddDto.ProductAttributeDto.ProductAttributeValueDto;
 import wj.flab.group_wise.repository.ProductRepository;
 
 @SpringBootTest
+@ActiveProfiles("test")
+@Transactional
 class ProductServiceTest {
 
     @Autowired
@@ -21,69 +27,89 @@ class ProductServiceTest {
     @Autowired
     private ProductRepository productRepository;
 
-    @Test
-    void addProduct() {
+    static int AttributeNum = 0;
+    static int AttributeValueNum = 0;
+    static int AdditionalPrice = 1000;
+    String getAttributeName() {
+        return "attributeName" + AttributeNum++;
+    }
+    String getAttributeValue() {
+        return "attributeValue" + AttributeNum + "-" + AttributeValueNum++;
+    }
+    int getAdditionalPrice() {
+        return AdditionalPrice += 1000;
+    }
 
-        // given : 상품 추가 정보
-        ProductAddDto productAddDto = new ProductAddDto(
+    private List<ProductAttributeValueDto> createAttrValueDtos(int valueCount) {
+        return IntStream.range(0, valueCount)
+            .mapToObj(j -> new ProductAttributeValueDto(
+                this.getAttributeValue(),
+                this.getAdditionalPrice()
+            ))
+            .toList();
+    }
+
+    private List<ProductAttributeDto> createAttributeDtos(int attrCount, int valuePerAttrCount) {
+        return IntStream.range(0, attrCount)
+            .mapToObj(i -> new ProductAttributeDto(
+                this.getAttributeName(),
+                createAttrValueDtos(valuePerAttrCount)
+            ))
+            .toList();
+    }
+
+    private ProductAddDto createSampleProductAddDto(int attrCount, int valuePerAttrCount) {
+        return new ProductAddDto(
             "seller",
             "productName",
             10000,
             SaleStatus.SALE,
-            List.of(
-                new ProductAttributeDto(
-                    "색상",
-                    List.of(
-                        new ProductAttributeDto.ProductAttributeValueDto(
-                            "red",
-                            1000
-                        ),
-                        new ProductAttributeDto.ProductAttributeValueDto(
-                            "pink",
-                            2000
-                        )
-                    )
-                ),
-                new ProductAttributeDto(
-                    "사이즈",
-                    List.of(
-                        new ProductAttributeDto.ProductAttributeValueDto(
-                            "L",
-                            1000
-                        ),
-                        new ProductAttributeDto.ProductAttributeValueDto(
-                            "M",
-                            0
-                        )
-                    )
-                )
-            )
+            createAttributeDtos(attrCount, valuePerAttrCount)
         );
+    }
 
-        // when
-        // 상품 추가
+//    @BeforeEach
+//    void setUp() {
+//        productRepository.deleteAll();
+//    }
+
+    @Test
+    void 상품_중복등록시_예외던지기() {
+
+        int attrCount = 2;
+        int valuePerAttrCount = 2;
+
+        // given : 상품 추가 정보
+        ProductAddDto productAddDto = createSampleProductAddDto(attrCount, valuePerAttrCount);
+
+        // when : 상품 추가
         productService.addProduct(productAddDto);
 
-        // then
-        // - 중복 상품 추가 시 예외 발생
-        Assertions.assertThatThrownBy(() -> productService.addProduct(
-                productAddDto))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("이미 등록된 상품입니다.");
-
-        // - 상품이 정상적으로 추가되었는지 확인
-        List<Product> products = productRepository.findAllWithAttributes();
-        long count = products.size();
-        Assertions.assertThat(count).isEqualTo(1);
-
-        Product product = products.get(0);
-        List<ProductAttribute> productAttributes = product.getProductAttributes(); // 지연로딩
-        Assertions.assertThat(productAttributes.size()).isEqualTo(2);
-
-//        int ColorValuesCount = productAttributes.stream().filter(pa -> pa.getAttributeName().equals("색상"))
-//            .findFirst().get()
-//            .getValues().size();
-//        Assertions.assertThat(ColorValuesCount).isEqualTo(2);
-
+        // then : 상품 중복 추가시 예외 반환
+        Assertions.assertThatThrownBy(() -> productService.addProduct(productAddDto))
+            .isInstanceOf(ProductAlreadyExistsException.class)
+            .hasMessage(ProductAlreadyExistsException.MESSAGE);
     }
+
+    @Test
+    void 상품_등록_ProductStock_까지_확인하기() {
+
+        int attrCount = 3;
+        int valuePerAttrCount = 4;
+
+        // given : 상품 추가 정보
+        ProductAddDto productAddDto = createSampleProductAddDto(attrCount, valuePerAttrCount);
+
+        // when : 상품 추가
+        productService.addProduct(productAddDto);
+
+        // then : 상품 추가 여부 확인
+        List<Product> products = productRepository.findAllWithAttributes();
+        long productSize = products.size();
+        Assertions.assertThat(productSize).isEqualTo(1);
+
+        int stockSize = products.get(0).getProductStocks().size();
+        Assertions.assertThat(stockSize).isEqualTo((int) Math.pow(valuePerAttrCount, attrCount));
+    }
+
 }
