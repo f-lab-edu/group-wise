@@ -4,50 +4,39 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.Range;
 import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
 
-@RequiredArgsConstructor
-@Getter
-public class ProductAddDto {
+/**
+ * @param seller               판매사
+ * @param productName          상품명
+ * @param basePrice            기준가(정가)
+ * @param saleStatus           판매상태
+ * @param productAttributeDtos 상품의 선택항목명과 값
+ */
+public record ProductAddDto(@NotBlank String seller,
+                            @NotBlank String productName,
+                            @Range(min = 0) int basePrice,
+                            @Enumerated(EnumType.STRING) SaleStatus saleStatus,
+                            List<ProductAttributeDto> productAttributeDtos) {
 
-    @Getter
-    @RequiredArgsConstructor
-    public static class ProductAttributeDto {
+    /**
+     * @param attributeName          상품의 선택항목명 (ex. 색상, 사이즈 등)
+     * @param productAttributeValues 상품의 선택항목 값 (ex. 빨강, M 등)
+     */
 
-        @NotBlank
-        private final String attributeName;                                       // 상품의 선택항목명 (ex. 색상, 사이즈 등)
-        private final List<ProductAttributeValueDto> productAttributeValues;   // 상품의 선택항목 값 (ex. 빨강, M 등)
+    public record ProductAttributeDto(@NotBlank String attributeName, List<ProductAttributeValueDto> productAttributeValues) {
 
-        @Getter
-        @RequiredArgsConstructor
-        public static class ProductAttributeValueDto {
-            @NotBlank
-            private final String attributeValue;              // 상품의 선택항목 값 (ex. 빨강, M 등)
+        /**
+         * @param attributeValue  상품의 선택항목 값 (ex. 빨강, M 등)
+         * @param additionalPrice 추가금액
+         */
 
-            @Range(min = 0)
-            private final int additionalPrice;                // 추가금액
-        }
+        public record ProductAttributeValueDto(@NotBlank String attributeValue, @Range(min = 0) int additionalPrice) {}
     }
 
-    @NotBlank
-    private final String seller;                      // 판매사
-
-    @NotBlank
-    private final String productName;                 // 상품명
-
-    @Range(min = 0)
-    private final int basePrice;                      // 기준가(정가)
-
-    @Enumerated(EnumType.STRING)
-    private final SaleStatus saleStatus;              // 판매상태
-
-    private final List<ProductAttributeDto> productAttributeDtos;    // 상품의 선택항목명과 값
-
     public Product toEntity() {
-        return Product.createProduct(seller, productName, basePrice);
+        return Product.createProduct(seller, productName, basePrice, saleStatus);
     }
 }

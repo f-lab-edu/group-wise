@@ -30,7 +30,7 @@ public class ProductService {
         productValidator.validateAddProduct(product);
 
         // 2. 상품 속성 추가
-        addProductAttribute(productAddDto.getProductAttributeDtos(), product);
+        addProductAttribute(productAddDto.productAttributeDtos(), product);
 
         // 3. 상품 속성값 조합에 따른 재고 생성
         product.generateProductStocks();
@@ -40,15 +40,15 @@ public class ProductService {
     private void addProductAttribute(List<ProductAttributeDto> attributeDtos, Product product) {
         attributeDtos.forEach(attributeDto -> {
             ProductAttribute attribute = new ProductAttribute(
-                attributeDto.getAttributeName(),
+                attributeDto.attributeName(),
                 product // 생성 시점에 관계 설정
             );
             product.addProductAttribute(attribute); // 양방향 관계 설정
 
-            attributeDto.getProductAttributeValues()
+            attributeDto.productAttributeValues()
                 .forEach(valueDto -> attribute.addValue(
-                    valueDto.getAttributeValue(),
-                    valueDto.getAdditionalPrice()
+                    valueDto.attributeValue(),
+                    valueDto.additionalPrice()
                 ));
         });
     }

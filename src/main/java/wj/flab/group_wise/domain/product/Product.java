@@ -19,7 +19,7 @@ import wj.flab.group_wise.domain.BaseTimeEntity;
 import wj.flab.group_wise.util.ListUtils;
 
 @Entity
-@Getter @Setter
+@Getter
 public class Product extends BaseTimeEntity {
 
     public enum SaleStatus {
@@ -61,17 +61,18 @@ public class Product extends BaseTimeEntity {
         orphanRemoval = true )
     private List<ProductStock> productStocks = new ArrayList<>();           // 상품의 선택항목 조합에 따른 재고
 
-    public static Product createProduct(String seller, String productName, int basePrice) {
-        return new Product(seller, productName, basePrice);
+    public static Product createProduct(String seller, String productName, int basePrice, SaleStatus saleStatus) {
+        return new Product(seller, productName, basePrice,saleStatus);
     }
 
     protected Product() {
     }
 
-    private Product(String seller, String productName, int basePrice) {
+    private Product(String seller, String productName, int basePrice, SaleStatus saleStatus) {
         this.seller = seller;
         this.productName = productName;
         this.basePrice = basePrice;
+        this.saleStatus = saleStatus;
     }
 
     public void addProductAttribute(ProductAttribute productAttribute) {
@@ -83,8 +84,8 @@ public class Product extends BaseTimeEntity {
             ProductStock newStock = new ProductStock(this);
             productStocks.add(newStock);
         } else {
-            List<List<ProductAttributeValue>> lists = ListUtils.cartesianProduct(productAttributes);
-            lists.forEach(combination -> {
+            List<List<ProductAttributeValue>> attrValueCombinations = ListUtils.cartesianProduct(productAttributes);
+            attrValueCombinations.forEach(combination -> {
                 ProductStock newStock = new ProductStock(this, combination);
                 productStocks.add(newStock);
             });
