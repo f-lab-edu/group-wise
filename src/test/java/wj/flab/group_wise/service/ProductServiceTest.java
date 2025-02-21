@@ -11,9 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 import wj.flab.group_wise.domain.exception.ProductAlreadyExistsException;
 import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
-import wj.flab.group_wise.dto.ProductAddDto;
-import wj.flab.group_wise.dto.ProductAddDto.ProductAttributeDto;
-import wj.flab.group_wise.dto.ProductAddDto.ProductAttributeDto.ProductAttributeValueDto;
+import wj.flab.group_wise.dto.ProductCreateRequest;
+import wj.flab.group_wise.dto.ProductCreateRequest.AttributeCreateRequest;
+import wj.flab.group_wise.dto.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
 import wj.flab.group_wise.repository.ProductRepository;
 
 @SpringBootTest
@@ -34,32 +34,32 @@ class ProductServiceTest {
         return "attributeName" + AttributeNum++;
     }
     String getAttributeValue() {
-        return "attributeValue" + AttributeNum + "-" + AttributeValueNum++;
+        return "attributeValueName" + AttributeNum + "-" + AttributeValueNum++;
     }
     int getAdditionalPrice() {
         return AdditionalPrice += 1000;
     }
 
-    private List<ProductAttributeValueDto> createAttrValueDtos(int valueCount) {
+    private List<AttributeValueCreateRequest> createAttrValueDtos(int valueCount) {
         return IntStream.range(0, valueCount)
-            .mapToObj(j -> new ProductAttributeValueDto(
+            .mapToObj(j -> new AttributeValueCreateRequest(
                 this.getAttributeValue(),
                 this.getAdditionalPrice()
             ))
             .toList();
     }
 
-    private List<ProductAttributeDto> createAttributeDtos(int attrCount, int valuePerAttrCount) {
+    private List<AttributeCreateRequest> createAttributeDtos(int attrCount, int valuePerAttrCount) {
         return IntStream.range(0, attrCount)
-            .mapToObj(i -> new ProductAttributeDto(
+            .mapToObj(i -> new AttributeCreateRequest(
                 this.getAttributeName(),
                 createAttrValueDtos(valuePerAttrCount)
             ))
             .toList();
     }
 
-    private ProductAddDto createSampleProductAddDto(int attrCount, int valuePerAttrCount) {
-        return new ProductAddDto(
+    private ProductCreateRequest createSampleProductAddDto(int attrCount, int valuePerAttrCount) {
+        return new ProductCreateRequest(
             "seller",
             "productName",
             10000,
@@ -80,13 +80,13 @@ class ProductServiceTest {
         int valuePerAttrCount = 2;
 
         // given : 상품 추가 정보
-        ProductAddDto productAddDto = createSampleProductAddDto(attrCount, valuePerAttrCount);
+        ProductCreateRequest productCreateRequest = createSampleProductAddDto(attrCount, valuePerAttrCount);
 
         // when : 상품 추가
-        productService.addProduct(productAddDto);
+        productService.createProduct(productCreateRequest);
 
         // then : 상품 중복 추가시 예외 반환
-        Assertions.assertThatThrownBy(() -> productService.addProduct(productAddDto))
+        Assertions.assertThatThrownBy(() -> productService.createProduct(productCreateRequest))
             .isInstanceOf(ProductAlreadyExistsException.class)
             .hasMessage(ProductAlreadyExistsException.MESSAGE);
     }
@@ -98,10 +98,10 @@ class ProductServiceTest {
         int valuePerAttrCount = 4;
 
         // given : 상품 추가 정보
-        ProductAddDto productAddDto = createSampleProductAddDto(attrCount, valuePerAttrCount);
+        ProductCreateRequest productCreateRequest = createSampleProductAddDto(attrCount, valuePerAttrCount);
 
         // when : 상품 추가
-        productService.addProduct(productAddDto);
+        productService.createProduct(productCreateRequest);
 
         // then : 상품 추가 여부 확인
         List<Product> products = productRepository.findAllWithAttributes();

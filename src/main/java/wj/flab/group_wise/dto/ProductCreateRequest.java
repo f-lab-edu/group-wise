@@ -13,28 +13,31 @@ import wj.flab.group_wise.domain.product.Product.SaleStatus;
  * @param productName          상품명
  * @param basePrice            기준가(정가)
  * @param saleStatus           판매상태
- * @param productAttributeDtos 상품의 선택항목명과 값
+ * @param attributeAddDtos 상품의 선택항목명과 값
  */
-public record ProductAddDto(@NotBlank String seller,
-                            @NotBlank String productName,
-                            @Range(min = 0) int basePrice,
-                            @Enumerated(EnumType.STRING) SaleStatus saleStatus,
-                            List<ProductAttributeDto> productAttributeDtos) {
+public record ProductCreateRequest(@NotBlank String seller,
+                                   @NotBlank String productName,
+                                   @Range(min = 0) int basePrice,
+                                   @Enumerated(EnumType.STRING) SaleStatus saleStatus,
+                                   List<AttributeCreateRequest> attributeAddDtos) {
 
     /**
      * @param attributeName          상품의 선택항목명 (ex. 색상, 사이즈 등)
      * @param productAttributeValues 상품의 선택항목 값 (ex. 빨강, M 등)
      */
 
-    public record ProductAttributeDto(@NotBlank String attributeName, List<ProductAttributeValueDto> productAttributeValues) {
+    public record AttributeCreateRequest(@NotBlank String attributeName,
+                                         List<AttributeValueCreateRequest> productAttributeValues) {
 
         /**
-         * @param attributeValue  상품의 선택항목 값 (ex. 빨강, M 등)
+         * @param attributeValueName  상품의 선택항목 값 (ex. 빨강, M 등)
          * @param additionalPrice 추가금액
          */
 
-        public record ProductAttributeValueDto(@NotBlank String attributeValue, @Range(min = 0) int additionalPrice) {}
+        public record AttributeValueCreateRequest(@NotBlank String attributeValueName,
+                                                  @Range(min = 0) int additionalPrice) {}
     }
+
 
     public Product toEntity() {
         return Product.createProduct(seller, productName, basePrice, saleStatus);

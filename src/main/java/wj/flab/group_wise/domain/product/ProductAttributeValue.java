@@ -15,14 +15,14 @@ import wj.flab.group_wise.domain.BaseTimeEntity;
 
 @Entity
 @Getter
-@EqualsAndHashCode(of = {"productAttribute", "attributeValue"}, callSuper = false)
+@EqualsAndHashCode(of = {"productAttribute", "attributeValueName"}, callSuper = false)
 public class ProductAttributeValue extends BaseTimeEntity {
 
     protected ProductAttributeValue() {}
 
-    protected ProductAttributeValue(ProductAttribute productAttribute, String attributeValue, int additionalPrice) {
+    protected ProductAttributeValue(ProductAttribute productAttribute, String attributeValueName, int additionalPrice) {
         this.productAttribute = productAttribute;
-        this.attributeValue = attributeValue;
+        this.attributeValueName = attributeValueName;
         this.additionalPrice = additionalPrice;
     }
 
@@ -35,7 +35,7 @@ public class ProductAttributeValue extends BaseTimeEntity {
     private ProductAttribute productAttribute;      // 상품의 선택항목명 엔티티 (ex. 색상, 사이즈 등)
 
     @NotBlank
-    private String attributeValue;                  // 상품의 선택항목 값 (ex. 빨강, M 등)
+    private String attributeValueName;                  // 상품의 선택항목 값 (ex. 빨강, M 등)
 
     @Range(min = 0)
     private int additionalPrice;                    // 추가금액
@@ -44,8 +44,8 @@ public class ProductAttributeValue extends BaseTimeEntity {
         this.productAttribute = null;
     }
 
-    protected void update(String attributeValue, int additionalPrice) {
-        this.attributeValue = attributeValue;
+    protected void update(@NotBlank String attributeValue, @Range(min = 0) int additionalPrice) {
+        this.attributeValueName = attributeValue;
         this.additionalPrice = additionalPrice;
     }
 }

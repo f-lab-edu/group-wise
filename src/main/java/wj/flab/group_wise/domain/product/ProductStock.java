@@ -13,6 +13,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
+import org.hibernate.validator.constraints.Range;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 
 @Entity
@@ -65,11 +66,14 @@ public class ProductStock extends BaseTimeEntity implements Purchasable {
         return stockQuantity;
     }
 
-    public void removeStock(int quantity) {
+    protected void removeStockQuantity(int quantity) {
         if (stockQuantity - quantity < 0) {
-            throw new IllegalArgumentException("재고가 부족합니다.");
+            throw new IllegalStateException("재고가 부족합니다.");
         }
         stockQuantity -= quantity;
     }
 
+    protected void addStockQuantity(@Range(min = 0) int quantity) {
+        this.stockQuantity += quantity;
+    }
 }
