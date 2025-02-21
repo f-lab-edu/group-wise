@@ -1,0 +1,14 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:tcp://localhost/~/test
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+#  datasource:
+#    url: jdbc:mysql://groupwise-db.cjffymhrio8b.ap-northeast-2.rds.amazonaws.com:3306/groupwise_test
+#    username: admin
+#    password: groupwise
+#    driver-class-name: com.mysql.cj.jdbc.Driver
