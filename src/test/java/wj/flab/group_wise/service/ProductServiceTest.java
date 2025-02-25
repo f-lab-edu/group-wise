@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-import wj.flab.group_wise.domain.exception.ProductAlreadyExistsException;
+import wj.flab.group_wise.domain.exception.AlreadyExistsException;
 import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
 import wj.flab.group_wise.dto.ProductCreateRequest;
@@ -87,8 +87,7 @@ class ProductServiceTest {
 
         // then : 상품 중복 추가시 예외 반환
         Assertions.assertThatThrownBy(() -> productService.createProduct(productCreateRequest))
-            .isInstanceOf(ProductAlreadyExistsException.class)
-            .hasMessage(ProductAlreadyExistsException.MESSAGE);
+            .isInstanceOf(AlreadyExistsException.class);
     }
 
     @Test

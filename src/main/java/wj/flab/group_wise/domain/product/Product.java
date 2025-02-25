@@ -15,15 +15,15 @@ import java.util.List;
 import lombok.Getter;
 import org.hibernate.validator.constraints.Range;
 import wj.flab.group_wise.domain.BaseTimeEntity;
-import wj.flab.group_wise.domain.exception.ProductAttributeNotFoundException;
-import wj.flab.group_wise.domain.exception.ProductStockNotFoundException;
+import wj.flab.group_wise.domain.exception.EntityNotFoundException;
+import wj.flab.group_wise.domain.exception.TargetEntity;
 import wj.flab.group_wise.dto.ProductCreateRequest.AttributeCreateRequest;
 import wj.flab.group_wise.dto.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
 import wj.flab.group_wise.dto.ProductDetailUpdateRequest;
-import wj.flab.group_wise.dto.ProductDetailUpdateRequest.ProductAttributeDeleteRequest;
 import wj.flab.group_wise.dto.ProductDetailUpdateRequest.AttributeUpdateRequest;
 import wj.flab.group_wise.dto.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueDeleteRequest;
 import wj.flab.group_wise.dto.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueUpdateRequest;
+import wj.flab.group_wise.dto.ProductDetailUpdateRequest.ProductAttributeDeleteRequest;
 import wj.flab.group_wise.dto.ProductStockUpdateRequest.ProductStockDto;
 import wj.flab.group_wise.util.ListUtils;
 
@@ -97,14 +97,15 @@ public class Product extends BaseTimeEntity {
         AI는 DTO 대신 Command Pattern 을 사용할 것을 권했으나,
         작업 비용이 생각한 것보다 커지는 것 같아서, 일단 entity 에서 DTO 를 참조했습니다. (최대한 dto 의존을 최소화하려고 합니다)
      */
-    public void createProductAttributes(List<AttributeCreateRequest> attrToCreate) {
-        attrToCreate.forEach(attr -> {
-            ProductAttribute newAttribute = new ProductAttribute(attr.attributeName(), this);
-            newAttribute.createValues(attr.productAttributeValues());
-            productAttributes.add(newAttribute);
-        });
-
+    public void appendProductAttributes(List<AttributeCreateRequest> attrToCreate) {
+        attrToCreate.forEach(this::convertToAttrEntityAndAppendToAttrList);
         createStockCombinations();
+    }
+
+    private void convertToAttrEntityAndAppendToAttrList(AttributeCreateRequest attr) {
+        ProductAttribute newAttribute = new ProductAttribute(attr.attributeName(), this);
+        newAttribute.appendValues(attr.productAttributeValues());
+        productAttributes.add(newAttribute);
     }
 
     public void restructureAttributes(ProductDetailUpdateRequest productToUpdate) {
@@ -118,7 +119,7 @@ public class Product extends BaseTimeEntity {
         boolean hasChangeInValue = updateAttributes(attrsToUpdate);
 
         boolean requiresStockRenewal
-            = !attrsToCreate.isEmpty() || !attrsToRemove.isEmpty() || hasChangeInValue;
+            = hasChangeInValue || !attrsToCreate.isEmpty() || !attrsToRemove.isEmpty() ;
 
         if (requiresStockRenewal) {
             renewProductStocks();
@@ -126,11 +127,7 @@ public class Product extends BaseTimeEntity {
     }
 
     private void createAttributes(List<AttributeCreateRequest> attrsToCreate) {
-        attrsToCreate.forEach(attr -> {
-            ProductAttribute newAttribute = new ProductAttribute(attr.attributeName(), this);
-            newAttribute.createValues(attr.productAttributeValues());
-            productAttributes.add(newAttribute); // 양방향 연관관계 설정
-        });
+        attrsToCreate.forEach(this::convertToAttrEntityAndAppendToAttrList);
     }
 
     private boolean updateAttributes(List<AttributeUpdateRequest> attrsToUpdate) {
@@ -145,11 +142,11 @@ public class Product extends BaseTimeEntity {
             List<AttributeValueUpdateRequest> updateValues = attr.updateAttributeValues();
             List<AttributeValueDeleteRequest> deleteValues = attr.deleteAttributeValuesIds();
 
-            targetAttr.createValues(newValues);
+            targetAttr.appendValues(newValues);
             targetAttr.removeValues(deleteValues);
             boolean differenceFoundInAdditionalPrice = targetAttr.updateValues(updateValues);
 
-            hasChangeInValue = !newValues.isEmpty() || !deleteValues.isEmpty() || differenceFoundInAdditionalPrice;
+            hasChangeInValue = differenceFoundInAdditionalPrice || !newValues.isEmpty() || !deleteValues.isEmpty();
         }
         return hasChangeInValue;
     }
@@ -184,7 +181,7 @@ public class Product extends BaseTimeEntity {
             ProductStock targetStock = productStocks.stream()
                 .filter(s -> s.getId().equals(stockDto.id()))
                 .findFirst()
-                .orElseThrow(() -> new ProductStockNotFoundException(stockDto.id()));
+                .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_STOCK, stockDto.id()));
 
             targetStock.addStockQuantity(stockDto.stockQuantityToBeAdded());
         });
@@ -194,6 +191,6 @@ public class Product extends BaseTimeEntity {
         return productAttributes.stream()
             .filter(attr -> attr.getId().equals(productAttributeId))
             .findFirst()
-            .orElseThrow(() -> new ProductAttributeNotFoundException(productAttributeId));
+            .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_ATTRIBUTE, productAttributeId));
     }
 }

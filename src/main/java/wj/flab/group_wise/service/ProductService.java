@@ -1,15 +1,15 @@
 package wj.flab.group_wise.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import wj.flab.group_wise.domain.exception.ProductNotFoundException;
 import wj.flab.group_wise.domain.product.Product;
+import wj.flab.group_wise.dto.ProductCreateRequest;
+import wj.flab.group_wise.dto.ProductDetailUpdateRequest;
 import wj.flab.group_wise.dto.ProductStockUpdateRequest;
 import wj.flab.group_wise.dto.ProductStockUpdateRequest.ProductStockDto;
-import wj.flab.group_wise.dto.ProductDetailUpdateRequest;
-import wj.flab.group_wise.dto.ProductCreateRequest;
 import wj.flab.group_wise.repository.ProductRepository;
 
 @Service
@@ -34,7 +34,7 @@ public class ProductService {
     private Product processCreateProduct(ProductCreateRequest productCreateRequest) {
         Product product = productCreateRequest.toEntity();
         productValidator.validateAddProduct(product);
-        product.createProductAttributes(productCreateRequest.attributeAddDtos());
+        product.appendProductAttributes(productCreateRequest.attributeAddDtos());
         return product;
     }
 
@@ -59,7 +59,7 @@ public class ProductService {
 
     private Product getProduct(Long productId) {
         return productRepository.findById(productId)
-            .orElseThrow(() -> new ProductNotFoundException(productId));
+            .orElseThrow(() -> new EntityNotFoundException(String.format("%d", productId)));
     }
 
 }

@@ -3,13 +3,7 @@ spring:
     activate:
       on-profile: local
   datasource:
-    url: jdbc:mysql://groupwise-db.cjffymhrio8b.ap-northeast-2.rds.amazonaws.com:3306/groupwise_prod
-    username: admin
-    password: groupwise
+    url: jdbc:mysql://${DB_HOST}:3306/${DB_NAME_PROD}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
-
-#  datasource:
-#    url: jdbc:mysql://${DB_HOST}:3306/${DB_NAME_PROD}
-#    username: ${DB_USERNAME}
-#    password: ${DB_PASSWORD}
-#    driver-class-name: com.mysql.cj.jdbc.Driver

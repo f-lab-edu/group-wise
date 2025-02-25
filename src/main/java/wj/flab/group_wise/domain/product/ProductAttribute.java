@@ -16,11 +16,12 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import wj.flab.group_wise.domain.BaseTimeEntity;
-import wj.flab.group_wise.domain.exception.ProductAttributeNotFoundException;
-import wj.flab.group_wise.domain.exception.ProductAttributeValueAlreadyExistsException;
+import wj.flab.group_wise.domain.exception.AlreadyExistsException;
+import wj.flab.group_wise.domain.exception.EntityNotFoundException;
+import wj.flab.group_wise.domain.exception.TargetEntity;
+import wj.flab.group_wise.dto.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
 import wj.flab.group_wise.dto.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueDeleteRequest;
 import wj.flab.group_wise.dto.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueUpdateRequest;
-import wj.flab.group_wise.dto.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
 import wj.flab.group_wise.util.ListUtils.ContainerOfValues;
 
 @Entity
@@ -57,7 +58,7 @@ public class ProductAttribute extends BaseTimeEntity implements ContainerOfValue
         this.attributeName = attrName;
     }
 
-    public void createValues(List<AttributeValueCreateRequest> valuesToCreate) {
+    public void appendValues(List<AttributeValueCreateRequest> valuesToCreate) {
         valuesToCreate.forEach(v -> {
             checkHasAlreadySameNameOfAttrValue(v.attributeValueName());
             values.add(new ProductAttributeValue(this, v.attributeValueName(), v.additionalPrice()));
@@ -90,7 +91,7 @@ public class ProductAttribute extends BaseTimeEntity implements ContainerOfValue
         return values.stream()
             .filter(v -> v.getId().equals(productAttributeValueId))
             .findFirst()
-            .orElseThrow(() -> new ProductAttributeNotFoundException(productAttributeValueId));
+            .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_ATTRIBUTE_VALUE, productAttributeValueId));
     }
 
     private void checkHasAlreadySameNameOfAttrValue(String attributeValueName) {
@@ -98,7 +99,7 @@ public class ProductAttribute extends BaseTimeEntity implements ContainerOfValue
             v -> v.getAttributeValueName().equals(attributeValueName));
 
         if (hasSameAttributeValue) {
-            throw new ProductAttributeValueAlreadyExistsException(attributeValueName);
+            throw new AlreadyExistsException(TargetEntity.PRODUCT_ATTRIBUTE, "이미 존재하는 속성값입니다. (" + attributeValueName + ")");
         }
     }
 }
