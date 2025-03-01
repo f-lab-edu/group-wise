@@ -20,7 +20,11 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    @Bean
+    /**
+     * csrf 토큰이 비활성화된 이유 : jwt 기반으로 인증을 하기 때문
+     * jwt 토큰은 쿠키가 아닌 Authorization 헤더에 담겨서 전송되기 때문에 csrf 공격에 취약하지 않습니다.
+     */
+    @Bean @SuppressWarnings("java:S4502")
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
