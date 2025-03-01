@@ -1,10 +1,12 @@
 package wj.flab.group_wise.util;
 
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class SecretGenerator {
     public static void main(String[] args) {
         String secret = UUID.randomUUID().toString().replace("-", "");
-        System.out.println("JWT Secret: " + secret);
+        log.info("JWT Secret: {}", secret);
     }
 }

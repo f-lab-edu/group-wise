@@ -25,7 +25,7 @@ public class JwtTokenProvider {
     @Value("${jwt.secret}")
     private String secret;
     private SecretKey secretKey;
-    private final long validityInMilliseconds = 3600000; // 1시간
+    private static final long validityInMilliseconds = 3600000; // 1시간
 
     private final UserDetailsService userDetailsService;
 
