@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
@@ -25,7 +26,7 @@ public class JwtTokenProvider {
     @Value("${jwt.secret}")
     private String secret;
     private SecretKey secretKey;
-    private static final long validityInMilliseconds = 3600000; // 1시간
+    private static final Duration validityTime = Duration.ofHours(1);
 
     private final UserDetailsService userDetailsService;
 
@@ -37,7 +38,7 @@ public class JwtTokenProvider {
     public String createToken(String username) {
         // java.time API 사용
         Instant now = Instant.now();
-        Instant validity = now.plusMillis(validityInMilliseconds);
+        Instant validity = now.plusMillis(validityTime.toMillis());
 
         List<String> roles = Collections.singletonList("ROLE_USER");
 
