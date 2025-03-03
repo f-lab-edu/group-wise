@@ -31,4 +31,10 @@ public class ProductValidator {
             throw new IllegalStateException("진행 중인 공동구매 상품은 재고 증가만 가능합니다.");
     }
 
+    public void validateProductLifeCycleBeforeDelete(Product product) {
+        List<GroupPurchase> groupPurchases = groupPurchaseRepository.findByProduct(product);
+
+        if (groupPurchases.stream().anyMatch(GroupPurchase::isOngoing))
+            throw new IllegalStateException("진행 중인 공동구매 상품은 삭제할 수 없습니다.");
+    }
 }

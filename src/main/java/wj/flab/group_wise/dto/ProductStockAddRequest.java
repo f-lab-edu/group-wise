@@ -7,11 +7,12 @@ import org.hibernate.validator.constraints.Range;
 /**
  * 공동구매 진행중 상품의 수정을 위한 DTO
  */
-public record ProductStockUpdateRequest(@NotNull Long productId,
-                                        List<ProductStockDto> productStockDtos
+public record ProductStockAddRequest(@NotNull Long productId,
+                                     List<StockAddRequest> stockAddRequests
 ) {
 
-    public record ProductStockDto(@NotNull Long id,
+    public record StockAddRequest(@NotNull Long id,
                                   @Range(min = 0) int stockQuantityToBeAdded
     ) {}
+
 }
