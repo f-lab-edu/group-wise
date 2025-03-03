@@ -41,6 +41,7 @@ public class ProductService {
 
     public void setProductStock(ProductStockSetRequest productToSetStock) {
         Product product = getProduct(productToSetStock.productId());
+        productValidator.validateProductLifeCycleBeforeMajorUpdate(product);
         product.setProductStocks(productToSetStock.stockQuantitySetRequests());
         product.deleteProductStocks(productToSetStock.stockDeleteRequests());
     }
@@ -71,7 +72,7 @@ public class ProductService {
 
     public void deleteProduct(Long productId) {
         Product product = getProduct(productId);
-        productValidator.validateProductLifeCycleBeforeDelete(product);
+        productValidator.validateProductLifeCycleBeforeMajorUpdate(product);
         productRepository.delete(product);
     }
 
