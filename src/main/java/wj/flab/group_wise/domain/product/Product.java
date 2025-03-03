@@ -180,22 +180,14 @@ public class Product extends BaseTimeEntity {
 
     public void addProductStocks(List<StockAddRequest> stockAddRequests) {
         stockAddRequests.forEach(stockDto -> {
-            ProductStock targetStock = productStocks.stream()
-                .filter(s -> s.getId().equals(stockDto.id()))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_STOCK, stockDto.id()));
-
-            int i = stockDto.stockQuantityToBeAdded();
-            targetStock.addStockQuantity(i);
+            ProductStock targetStock = getTargetStock(stockDto.id());
+            targetStock.addStockQuantity(stockDto.stockQuantityToBeAdded());
         });
     }
 
     public void setProductStocks(List<StockQuantitySetRequest> stockQuantitySetRequests) {
         stockQuantitySetRequests.forEach(stockDto -> {
-            ProductStock targetStock = productStocks.stream()
-                .filter(s -> s.getId().equals(stockDto.id()))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_STOCK, stockDto.id()));
+            ProductStock targetStock = getTargetStock(stockDto.id());
 
             targetStock.setStockQuantity(stockDto.stockQuantityToSet());
         });
@@ -203,20 +195,23 @@ public class Product extends BaseTimeEntity {
 
     public void deleteProductStocks(List<StockDeleteRequest> stockDeleteRequests) {
         stockDeleteRequests.forEach(stockDto -> {
-            ProductStock targetStock = productStocks.stream()
-                .filter(s -> s.getId().equals(stockDto.id()))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_STOCK, stockDto.id()));
+            ProductStock targetStock = getTargetStock(stockDto.id());
 
             productStocks.remove(targetStock);
         });
     }
-
 
     private ProductAttribute getProductAttribute(Long productAttributeId) {
         return productAttributes.stream()
             .filter(attr -> attr.getId().equals(productAttributeId))
             .findFirst()
             .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_ATTRIBUTE, productAttributeId));
+    }
+
+    private ProductStock getTargetStock(Long stockDto) {
+        return productStocks.stream()
+            .filter(s -> s.getId().equals(stockDto))
+            .findFirst()
+            .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_STOCK, stockDto));
     }
 }
