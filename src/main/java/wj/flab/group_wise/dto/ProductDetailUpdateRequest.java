@@ -20,7 +20,7 @@ public record ProductDetailUpdateRequest(@NotNull Long productId,
                                          @Enumerated(EnumType.STRING) SaleStatus saleStatus,
                                          List<AttributeCreateRequest> newAttributes,
                                          List<AttributeUpdateRequest> updateAttributes,
-                                         List<ProductAttributeDeleteRequest> deleteAttributesIds) {
+                                         List<AttributeDeleteRequest> deleteAttributesIds) {
 
     /**
      * 상품의 선택항목명 (ex. 색상, 사이즈 등)
@@ -41,5 +41,5 @@ public record ProductDetailUpdateRequest(@NotNull Long productId,
         public record AttributeValueDeleteRequest(@NotNull Long productAttributeValueId) {}
     }
 
-    public record ProductAttributeDeleteRequest(@NotNull Long productAttributeId) {}
+    public record AttributeDeleteRequest(@NotNull Long productAttributeId) {}
 }

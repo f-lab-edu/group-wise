@@ -63,7 +63,7 @@ public class ProductStock extends BaseTimeEntity implements Purchasable {
 
     @Override
     public int getStockQuantity() {
-        return stockQuantity;
+        return stockQuantity == null ? 0 : stockQuantity;
     }
 
     protected void removeStockQuantity(int quantity) {
@@ -74,6 +74,10 @@ public class ProductStock extends BaseTimeEntity implements Purchasable {
     }
 
     protected void addStockQuantity(@Range(min = 0) int quantity) {
-        this.stockQuantity += quantity;
+        this.stockQuantity = getStockQuantity() + quantity;
+    }
+
+    protected void setStockQuantity(@Range(min = 0) int quantity) {
+        this.stockQuantity = quantity;
     }
 }
