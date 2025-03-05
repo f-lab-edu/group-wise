@@ -188,7 +188,6 @@ public class Product extends BaseTimeEntity {
     public void setProductStocks(List<StockQuantitySetRequest> stockQuantitySetRequests) {
         stockQuantitySetRequests.forEach(stockDto -> {
             ProductStock targetStock = getTargetStock(stockDto.id());
-
             targetStock.setStockQuantity(stockDto.stockQuantityToSet());
         });
     }
@@ -196,7 +195,6 @@ public class Product extends BaseTimeEntity {
     public void deleteProductStocks(List<StockDeleteRequest> stockDeleteRequests) {
         stockDeleteRequests.forEach(stockDto -> {
             ProductStock targetStock = getTargetStock(stockDto.id());
-
             productStocks.remove(targetStock);
         });
     }
@@ -208,10 +206,10 @@ public class Product extends BaseTimeEntity {
             .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_ATTRIBUTE, productAttributeId));
     }
 
-    private ProductStock getTargetStock(Long stockDto) {
+    private ProductStock getTargetStock(Long stockId) {
         return productStocks.stream()
-            .filter(s -> s.getId().equals(stockDto))
+            .filter(s -> s.getId().equals(stockId))
             .findFirst()
-            .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_STOCK, stockDto));
+            .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_STOCK, stockId));
     }
 }
