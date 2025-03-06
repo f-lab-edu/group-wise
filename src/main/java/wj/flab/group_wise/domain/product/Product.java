@@ -76,6 +76,9 @@ public class Product extends BaseTimeEntity {
     }
 
     private Product(String seller, String productName, int basePrice, SaleStatus saleStatus) {
+        if (basePrice < 0) {
+            throw new IllegalArgumentException("기준가는 0 이상이어야 합니다.");
+        }
         this.seller = seller;
         this.productName = productName;
         this.basePrice = basePrice;
@@ -83,6 +86,9 @@ public class Product extends BaseTimeEntity {
     }
 
     public void updateProductBasicInfo(String seller, String productName, int basePrice, SaleStatus saleStatus) {
+        if (basePrice < 0) {
+            throw new IllegalArgumentException("기준가는 0 이상이어야 합니다.");
+        }
         this.seller = seller;
         this.productName = productName;
         this.basePrice = basePrice;
