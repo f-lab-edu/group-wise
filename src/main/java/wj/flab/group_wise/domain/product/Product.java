@@ -20,11 +20,13 @@ import wj.flab.group_wise.domain.exception.TargetEntity;
 import wj.flab.group_wise.dto.ProductCreateRequest.AttributeCreateRequest;
 import wj.flab.group_wise.dto.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
 import wj.flab.group_wise.dto.ProductDetailUpdateRequest;
+import wj.flab.group_wise.dto.ProductDetailUpdateRequest.AttributeDeleteRequest;
 import wj.flab.group_wise.dto.ProductDetailUpdateRequest.AttributeUpdateRequest;
 import wj.flab.group_wise.dto.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueDeleteRequest;
 import wj.flab.group_wise.dto.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueUpdateRequest;
-import wj.flab.group_wise.dto.ProductDetailUpdateRequest.ProductAttributeDeleteRequest;
-import wj.flab.group_wise.dto.ProductStockUpdateRequest.ProductStockDto;
+import wj.flab.group_wise.dto.ProductStockAddRequest.StockAddRequest;
+import wj.flab.group_wise.dto.ProductStockSetRequest.StockDeleteRequest;
+import wj.flab.group_wise.dto.ProductStockSetRequest.StockQuantitySetRequest;
 import wj.flab.group_wise.util.ListUtils;
 
 @Entity @Getter
@@ -112,7 +114,7 @@ public class Product extends BaseTimeEntity {
 
         List<AttributeCreateRequest> attrsToCreate = productToUpdate.newAttributes();
         List<AttributeUpdateRequest> attrsToUpdate = productToUpdate.updateAttributes();
-        List<ProductAttributeDeleteRequest> attrsToRemove = productToUpdate.deleteAttributesIds();
+        List<AttributeDeleteRequest> attrsToRemove = productToUpdate.deleteAttributesIds();
 
         createAttributes(attrsToCreate);
         removeAttributes(attrsToRemove);
@@ -151,7 +153,7 @@ public class Product extends BaseTimeEntity {
         return hasChangeInValue;
     }
 
-    private void removeAttributes(List<ProductAttributeDeleteRequest> attrDeleteIds) {
+    private void removeAttributes(List<AttributeDeleteRequest> attrDeleteIds) {
         attrDeleteIds.forEach(attr -> {
             ProductAttribute targetAttr = getProductAttribute(attr.productAttributeId());
             productAttributes.remove(targetAttr);
@@ -176,14 +178,24 @@ public class Product extends BaseTimeEntity {
         }
     }
 
-    public void updateProductStocks(List<ProductStockDto> productStockDtos) {
-        productStockDtos.forEach(stockDto -> {
-            ProductStock targetStock = productStocks.stream()
-                .filter(s -> s.getId().equals(stockDto.id()))
-                .findFirst()
-                .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_STOCK, stockDto.id()));
-
+    public void addProductStocks(List<StockAddRequest> stockAddRequests) {
+        stockAddRequests.forEach(stockDto -> {
+            ProductStock targetStock = getTargetStock(stockDto.id());
             targetStock.addStockQuantity(stockDto.stockQuantityToBeAdded());
+        });
+    }
+
+    public void setProductStocks(List<StockQuantitySetRequest> stockQuantitySetRequests) {
+        stockQuantitySetRequests.forEach(stockDto -> {
+            ProductStock targetStock = getTargetStock(stockDto.id());
+            targetStock.setStockQuantity(stockDto.stockQuantityToSet());
+        });
+    }
+
+    public void deleteProductStocks(List<StockDeleteRequest> stockDeleteRequests) {
+        stockDeleteRequests.forEach(stockDto -> {
+            ProductStock targetStock = getTargetStock(stockDto.id());
+            productStocks.remove(targetStock);
         });
     }
 
@@ -192,5 +204,12 @@ public class Product extends BaseTimeEntity {
             .filter(attr -> attr.getId().equals(productAttributeId))
             .findFirst()
             .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_ATTRIBUTE, productAttributeId));
+    }
+
+    private ProductStock getTargetStock(Long stockId) {
+        return productStocks.stream()
+            .filter(s -> s.getId().equals(stockId))
+            .findFirst()
+            .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_STOCK, stockId));
     }
 }
