@@ -193,4 +193,13 @@ public class Product extends BaseTimeEntity {
             .findFirst()
             .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_ATTRIBUTE, productAttributeId));
     }
+
+    public void decreaseStockQuantity(Long productStockId, int quantity) {
+        ProductStock targetStock = productStocks.stream()
+            .filter(s -> s.getId().equals(productStockId))
+            .findFirst()
+            .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_STOCK, productStockId));
+
+        targetStock.decreaseStockQuantity(quantity);
+    }
 }
