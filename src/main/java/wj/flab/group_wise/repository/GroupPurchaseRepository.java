@@ -11,11 +11,9 @@ import wj.flab.group_wise.domain.product.Product;
 public interface GroupPurchaseRepository extends JpaRepository<GroupPurchase, Long> {
 
     @Query("SELECT gp FROM GroupPurchase gp "
-        + "JOIN FETCH gp.product p "
+        + "JOIN Product p on gp.productId = p.id "
         + "WHERE gp.status = :status AND p = :product")
     List<GroupPurchase> findGroupPurchaseByProductAndStatus(
         GroupPurchase.Status status, Product product);
-
-    List<GroupPurchase> findByProduct(Product product);
 
 }

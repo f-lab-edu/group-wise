@@ -1,11 +1,13 @@
 package wj.flab.group_wise.service;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
 import wj.flab.group_wise.domain.exception.TargetEntity;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
+import wj.flab.group_wise.domain.groupPurchase.GroupPurchase.Status;
 import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCancelRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCreateRequest;
@@ -28,7 +30,8 @@ public class GroupPurchaseService {
         Long productId = groupCreateRequest.productId();
         Product product = productService.findProduct(productId);
 
-        if (!groupPurchaseRepository.findByProduct(product).isEmpty()) {
+        List<GroupPurchase> ongoingGroupsOfProduct = groupPurchaseRepository.findGroupPurchaseByProductAndStatus(Status.ONGOING, product);
+        if (!ongoingGroupsOfProduct.isEmpty()) {
             throw new IllegalStateException("해당 상품(productId=" + productId + ")에 대해서 이미 진행중인 그룹 구매가 있습니다.");
         }
 

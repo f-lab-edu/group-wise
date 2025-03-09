@@ -7,10 +7,11 @@ import org.springframework.transaction.annotation.Transactional;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
 import wj.flab.group_wise.domain.exception.TargetEntity;
 import wj.flab.group_wise.domain.product.Product;
+import wj.flab.group_wise.dto.product.ProductStockAddRequest;
+import wj.flab.group_wise.dto.product.ProductStockAddRequest.StockAddRequest;
+import wj.flab.group_wise.dto.product.ProductStockSetRequest;
 import wj.flab.group_wise.dto.product.ProductCreateRequest;
 import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest;
-import wj.flab.group_wise.dto.product.ProductStockUpdateRequest;
-import wj.flab.group_wise.dto.product.ProductStockUpdateRequest.ProductStockDto;
 import wj.flab.group_wise.repository.ProductRepository;
 
 @Service
@@ -26,23 +27,30 @@ public class ProductService {
         return null;
     }
 
-    public Long createProduct(ProductCreateRequest productCreateRequest) {
-        Product product = processCreateProduct(productCreateRequest);
+    public Long createProduct(ProductCreateRequest productToCreate) {
+        Product product = processCreateProduct(productToCreate);
         productRepository.save(product);
         return product.getId();
     }
 
-    private Product processCreateProduct(ProductCreateRequest productCreateRequest) {
-        Product product = productCreateRequest.toEntity();
+    private Product processCreateProduct(ProductCreateRequest productToCreate) {
+        Product product = productToCreate.toEntity();
         productValidator.validateAddProduct(product);
-        product.appendProductAttributes(productCreateRequest.attributeAddDtos());
+        product.appendProductAttributes(productToCreate.attributeAddDtos());
         return product;
     }
 
-    public void updateProductStock(ProductStockUpdateRequest productToUpdate) {
-        Product product = findProduct(productToUpdate.productId());
-        List<ProductStockDto> productStockDtos = productToUpdate.productStockDtos();
-        product.updateProductStocks(productStockDtos);
+    public void setProductStock(ProductStockSetRequest productToSetStock) {
+        Product product = findProduct(productToSetStock.productId());
+        productValidator.validateProductLifeCycleBeforeMajorUpdate(product);
+        product.setProductStocks(productToSetStock.stockQuantitySetRequests());
+        product.deleteProductStocks(productToSetStock.stockDeleteRequests());
+    }
+
+    public void addProductStock(ProductStockAddRequest productToAddStock) {
+        Product product = findProduct(productToAddStock.productId());
+        List<StockAddRequest> stockAddRequests = productToAddStock.stockAddRequests();
+        product.addProductStocks(stockAddRequests);
     }
 
     public void updateProductDetails(ProductDetailUpdateRequest productToUpdate) {
@@ -61,6 +69,12 @@ public class ProductService {
     public Product findProduct(Long productId) {
         return productRepository.findById(productId)
             .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT, productId));
+    }
+
+    public void deleteProduct(Long productId) {
+        Product product = findProduct(productId);
+        productValidator.validateProductLifeCycleBeforeMajorUpdate(product);
+        productRepository.delete(product);
     }
 
 }

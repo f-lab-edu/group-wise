@@ -44,7 +44,7 @@ public class ProductAttributeValue extends BaseTimeEntity {
         this.productAttribute = null;
     }
 
-    protected void update(@NotBlank String attributeValue, @Range(min = 0) int additionalPrice) {
+    protected void update(String attributeValue, int additionalPrice) {
         this.attributeValueName = attributeValue;
         this.additionalPrice = additionalPrice;
     }
