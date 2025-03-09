@@ -11,9 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 import wj.flab.group_wise.domain.exception.AlreadyExistsException;
 import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
-import wj.flab.group_wise.dto.ProductCreateRequest;
-import wj.flab.group_wise.dto.ProductCreateRequest.AttributeCreateRequest;
-import wj.flab.group_wise.dto.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
+import wj.flab.group_wise.dto.product.ProductCreateRequest;
+import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest;
+import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
 import wj.flab.group_wise.repository.ProductRepository;
 
 @SpringBootTest

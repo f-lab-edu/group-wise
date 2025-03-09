@@ -10,8 +10,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -21,7 +19,6 @@ import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 import wj.flab.group_wise.domain.Member;
-import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.ProductStock;
 
 @Entity
@@ -42,12 +39,15 @@ public class GroupPurchase extends BaseTimeEntity { // 공동구매 그룹
     }
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Getter
     private Long id;
     private String title;                   // 공동구매 게시물 제목
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
-    private Product product;                // 상품
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "product_id")
+//    private Product product;                // 상품
+    private Long productId;                 // 상품 ID
+
     private Integer discountRate;           // 할인율
     private Integer initialPrice;           // 공구 가격 (할인율이 적용된, 옵션이 최종구성된 상품 가격 중 최소금액)
     private Integer minimumParticipants;    // 최소 진행 인원
@@ -67,10 +67,10 @@ public class GroupPurchase extends BaseTimeEntity { // 공동구매 그룹
     @Enumerated(EnumType.STRING)
     private Status status;                                                                // 진행 상태
 
-    public static GroupPurchase createGroupPurchase(String title, Product product, Integer discountRate, Integer initialPrice, Integer minimumParticipants, LocalDateTime startDate, LocalDateTime endDate) {
+    public static GroupPurchase createGroupPurchase(String title, Long productId, Integer discountRate, Integer initialPrice, Integer minimumParticipants, LocalDateTime startDate, LocalDateTime endDate) {
         GroupPurchase groupPurchase = new GroupPurchase();
         groupPurchase.title = title;
-        groupPurchase.product = product;
+        groupPurchase.productId = productId;
         groupPurchase.discountRate = discountRate;
         groupPurchase.initialPrice = initialPrice;
         groupPurchase.minimumParticipants = minimumParticipants;
@@ -80,12 +80,12 @@ public class GroupPurchase extends BaseTimeEntity { // 공동구매 그룹
         return groupPurchase;
     }
 
-    public void updateGroupPurchaseInfo(String title, Product product, Integer discountRate, Integer initialPrice, Integer minimumParticipants, LocalDateTime startDate, LocalDateTime endDate) {
+    public void updateGroupPurchaseInfo(String title, Long productId, Integer discountRate, Integer initialPrice, Integer minimumParticipants, LocalDateTime startDate, LocalDateTime endDate) {
         if (status != Status.PENDING) {
             throw new IllegalStateException("진행 중인 공동구매는 수정할 수 없습니다.");
         }
         this.title = title;
-        this.product = product;
+        this.productId = productId;
         this.discountRate = discountRate;
         this.initialPrice = initialPrice;
         this.minimumParticipants = minimumParticipants;
@@ -100,17 +100,18 @@ public class GroupPurchase extends BaseTimeEntity { // 공동구매 그룹
         status = Status.ONGOING;
     }
 
+    public void cancel() {
+        if (status != Status.ONGOING) {
+            throw new IllegalStateException("진행 중인 공동구매가 아닙니다.");
+        }
+        status = Status.CANCELLED;
+    }
+
     public void addParticipant(Member member, ProductStock selectedProduct, Integer quantity) {
         if (!canJoin()) {
             throw new IllegalStateException("현재 참여가 불가능한 공동구매입니다.");
         }
 
-        if (isMinimumParticipantsMet()) {
-            // todo 최소 인원 달성 이벤트 발생 -> 작성 위치가 맞으려나
-        }
-
-        // 동시성 문제는 없을까
-        this.product.decreaseStockQuantity(selectedProduct.getId(), quantity);
         this.groupPurchaseParticipants.add(
             GroupPurchaseParticipant.createPurchaseParticipant(this, member, selectedProduct, quantity));
     }
@@ -143,6 +144,10 @@ public class GroupPurchase extends BaseTimeEntity { // 공동구매 그룹
 
     public boolean isOngoing() {
         return status == Status.ONGOING;
+    }
+
+    public boolean isModifiable() {
+        return status == Status.PENDING;
     }
 
 }

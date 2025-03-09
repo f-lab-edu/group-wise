@@ -1,4 +1,4 @@
-package wj.flab.group_wise.dto;
+package wj.flab.group_wise.dto.product;
 
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -7,8 +7,8 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import org.hibernate.validator.constraints.Range;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
-import wj.flab.group_wise.dto.ProductCreateRequest.AttributeCreateRequest;
-import wj.flab.group_wise.dto.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
+import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest;
+import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
 
 /**
  * 공동구매 진행상태가 아닌 상품의 수정을 위한 DTO

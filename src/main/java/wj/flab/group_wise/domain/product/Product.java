@@ -17,14 +17,14 @@ import org.hibernate.validator.constraints.Range;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
 import wj.flab.group_wise.domain.exception.TargetEntity;
-import wj.flab.group_wise.dto.ProductCreateRequest.AttributeCreateRequest;
-import wj.flab.group_wise.dto.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
-import wj.flab.group_wise.dto.ProductDetailUpdateRequest;
-import wj.flab.group_wise.dto.ProductDetailUpdateRequest.AttributeUpdateRequest;
-import wj.flab.group_wise.dto.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueDeleteRequest;
-import wj.flab.group_wise.dto.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueUpdateRequest;
-import wj.flab.group_wise.dto.ProductDetailUpdateRequest.ProductAttributeDeleteRequest;
-import wj.flab.group_wise.dto.ProductStockUpdateRequest.ProductStockDto;
+import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest;
+import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
+import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest;
+import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest;
+import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueDeleteRequest;
+import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueUpdateRequest;
+import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.ProductAttributeDeleteRequest;
+import wj.flab.group_wise.dto.product.ProductStockUpdateRequest.ProductStockDto;
 import wj.flab.group_wise.util.ListUtils;
 
 @Entity @Getter

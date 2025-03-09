@@ -1,15 +1,16 @@
 package wj.flab.group_wise.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import wj.flab.group_wise.domain.exception.EntityNotFoundException;
+import wj.flab.group_wise.domain.exception.TargetEntity;
 import wj.flab.group_wise.domain.product.Product;
-import wj.flab.group_wise.dto.ProductCreateRequest;
-import wj.flab.group_wise.dto.ProductDetailUpdateRequest;
-import wj.flab.group_wise.dto.ProductStockUpdateRequest;
-import wj.flab.group_wise.dto.ProductStockUpdateRequest.ProductStockDto;
+import wj.flab.group_wise.dto.product.ProductCreateRequest;
+import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest;
+import wj.flab.group_wise.dto.product.ProductStockUpdateRequest;
+import wj.flab.group_wise.dto.product.ProductStockUpdateRequest.ProductStockDto;
 import wj.flab.group_wise.repository.ProductRepository;
 
 @Service
@@ -39,13 +40,13 @@ public class ProductService {
     }
 
     public void updateProductStock(ProductStockUpdateRequest productToUpdate) {
-        Product product = getProduct(productToUpdate.productId());
+        Product product = findProduct(productToUpdate.productId());
         List<ProductStockDto> productStockDtos = productToUpdate.productStockDtos();
         product.updateProductStocks(productStockDtos);
     }
 
     public void updateProductDetails(ProductDetailUpdateRequest productToUpdate) {
-        Product product = getProduct(productToUpdate.productId());
+        Product product = findProduct(productToUpdate.productId());
         productValidator.validateProductLifeCycleBeforeMajorUpdate(product);
 
         product.updateProductBasicInfo(
@@ -57,9 +58,9 @@ public class ProductService {
         product.restructureAttributes(productToUpdate);
     }
 
-    private Product getProduct(Long productId) {
+    public Product findProduct(Long productId) {
         return productRepository.findById(productId)
-            .orElseThrow(() -> new EntityNotFoundException(String.format("%d", productId)));
+            .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT, productId));
     }
 
 }
