@@ -4,18 +4,20 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import wj.flab.group_wise.domain.Member;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
 import wj.flab.group_wise.domain.exception.TargetEntity;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase.Status;
 import wj.flab.group_wise.domain.product.Product;
+import wj.flab.group_wise.domain.product.Product.SaleStatus;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCancelRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCreateRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseDeleteRequest;
+import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseJoinRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseStartRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseUpdateRequest;
 import wj.flab.group_wise.repository.GroupPurchaseRepository;
-import wj.flab.group_wise.repository.ProductRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -23,14 +25,17 @@ import wj.flab.group_wise.repository.ProductRepository;
 public class GroupPurchaseService {
 
     private final ProductService productService;
-    private final ProductRepository productRepository;
+    private final MemberService memberService;
     private final GroupPurchaseRepository groupPurchaseRepository;
 
     public Long createGroupPurchase(GroupPurchaseCreateRequest groupCreateRequest) {
         Long productId = groupCreateRequest.productId();
         Product product = productService.findProduct(productId);
+        if (product.getSaleStatus() != SaleStatus.SALE) {
+            throw new IllegalStateException("판매 중인 상품이 아닙니다.");
+        }
 
-        List<GroupPurchase> ongoingGroupsOfProduct = groupPurchaseRepository.findGroupPurchaseByProductAndStatus(Status.ONGOING, product);
+        List<GroupPurchase> ongoingGroupsOfProduct = groupPurchaseRepository.findGroupPurchaseByProductAndStatus(Status.ONGOING, product.getId());
         if (!ongoingGroupsOfProduct.isEmpty()) {
             throw new IllegalStateException("해당 상품(productId=" + productId + ")에 대해서 이미 진행중인 그룹 구매가 있습니다.");
         }
@@ -55,7 +60,7 @@ public class GroupPurchaseService {
         );
     }
 
-    private GroupPurchase findGroupPurchase(Long groupPurchaseId) {
+    public GroupPurchase findGroupPurchase(Long groupPurchaseId) {
         return groupPurchaseRepository.findById(groupPurchaseId)
             .orElseThrow(() -> new EntityNotFoundException(TargetEntity.GROUP_PURCHASE, groupPurchaseId));
     }
@@ -80,15 +85,18 @@ public class GroupPurchaseService {
         // todo 추후 참여자에게 알림 기능 구현하기
     }
 
-//    public void joinGroupPurchase(GroupPurchaseJoinRequest groupJoinRequest) {
-//        GroupPurchase groupPurchase = findGroupPurchase(groupJoinRequest.groupPurchaseId());
-//        Member member = groupJoinRequest.member();
-//        ProductStock productStock = groupJoinRequest.productStock();
-//        int quantity = groupJoinRequest.quantity();
-//        // todo 최소 인원 달성 알림
-//        // todo 상품 재고 감소 처리
-//
-//        groupPurchase.addParticipant(member, productStock, quantity);
-//    }
+    public void joinGroupPurchase(GroupPurchaseJoinRequest groupJoinRequest) {
+
+        GroupPurchase groupPurchase = findGroupPurchase(groupJoinRequest.groupPurchaseId());
+        Member member = memberService.findMember(groupJoinRequest.memberId());
+        Product product = productService.findProduct(groupJoinRequest.productId());
+        Long stockId = groupJoinRequest.productStockId();
+        int quantity = groupJoinRequest.quantity();
+
+        // todo 추후 참여자에게 최소 인원 달성 알림 기능 구현하기
+
+        product.decreaseStockQuantity(stockId, quantity);
+        groupPurchase.addParticipant(member, stockId, quantity);
+    }
 
 }

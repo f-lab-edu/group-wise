@@ -27,12 +27,12 @@ create table product
 (
     id            bigint auto_increment
         primary key,
-    seller        varchar(255)                             null comment '판매사',
-    product_name  varchar(255)                             not null comment '상품명',
-    base_price    int default 0                            not null comment '기본 가격',
-    sale_status   enum ('DISCONTINUE', 'SALE', 'SOLD_OUT') null comment '판매 상태',
-    created_date  datetime(6)                              null comment '생성 일시',
-    modified_date datetime(6)                              null comment '최종 수정 일시'
+    seller        varchar(255)                                        null comment '판매사',
+    product_name  varchar(255)                                        not null comment '상품명',
+    base_price    int default 0                                       not null comment '기본 가격',
+    sale_status   enum ('PREPARE', 'DISCONTINUE', 'SALE', 'SOLD_OUT') null comment '판매 상태',
+    created_date  datetime(6)                                         null comment '생성 일시',
+    modified_date datetime(6)                                         null comment '최종 수정 일시'
 )
     comment '상품 기본 정보';
 
@@ -93,12 +93,12 @@ create table product_stock
 
 create table product_attribute_value_stock
 (
-    id                   bigint auto_increment
+    id                         bigint auto_increment
         primary key,
-    product_stock_id     bigint      null comment '상품의 최종 옵션 구성 id',
-    product_attribute_value_id   bigint      null comment '상품의 선택항목값 id',
-    created_date         datetime(6) null comment '생성 일시',
-    modified_date        datetime(6) null comment '최종 수정 일시',
+    product_stock_id           bigint      null comment '상품의 최종 옵션 구성 id',
+    product_attribute_value_id bigint      null comment '상품의 선택항목값 id',
+    created_date               datetime(6) null comment '생성 일시',
+    modified_date              datetime(6) null comment '최종 수정 일시',
     constraint FK_product_attribute_value_stock__product_attribute_value__id
         foreign key (product_attribute_value_id) references product_attribute_value (id),
     constraint FK_product_attribute_value_stock__product_stock__id

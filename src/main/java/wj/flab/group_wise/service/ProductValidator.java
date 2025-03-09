@@ -26,7 +26,7 @@ public class ProductValidator {
     }
 
     public void validateProductLifeCycleBeforeMajorUpdate(Product product) {
-        List<GroupPurchase> ongoingGroups = groupPurchaseRepository.findGroupPurchaseByProductAndStatus(Status.ONGOING, product);
+        List<GroupPurchase> ongoingGroups = groupPurchaseRepository.findGroupPurchaseByProductAndStatus(Status.ONGOING, product.getId());
         if (!ongoingGroups.isEmpty()) {
             throw new IllegalStateException("진행 중인 공동구매 상품은 재고 증가만 가능합니다.");
         }

@@ -7,12 +7,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 import wj.flab.group_wise.domain.Member;
-import wj.flab.group_wise.domain.product.ProductStock;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -30,8 +28,7 @@ public class GroupPurchaseParticipant extends BaseTimeEntity { // 공동구매 �
     @JoinColumn(name = "member_id")
     private Member member;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    private ProductStock selectedProduct;   // 선택한 상품
+    private Long productStockId;            // 선택한 상품
     private Integer quantity;               // 구매 수량
 
     private boolean isWishlist;                 // 관심 여부 (찜)
@@ -40,12 +37,12 @@ public class GroupPurchaseParticipant extends BaseTimeEntity { // 공동구매 �
     private GroupPurchaseParticipant(
         GroupPurchase groupPurchase,
         Member member,
-        ProductStock selectedProduct,
+        Long productStockId,
         Integer quantity) {
 
         this.groupPurchase = groupPurchase;
         this.member = member;
-        this.selectedProduct = selectedProduct;
+        this.productStockId = productStockId;
         this.quantity = quantity;
         this.isWishlist = false;
         this.hasParticipated = true;
@@ -64,10 +61,10 @@ public class GroupPurchaseParticipant extends BaseTimeEntity { // 공동구매 �
     protected static GroupPurchaseParticipant createPurchaseParticipant(
         GroupPurchase groupPurchase,
         Member member,
-        ProductStock selectedProduct,
+        Long productStockId,
         Integer quantity) {
 
-        return new GroupPurchaseParticipant(groupPurchase, member, selectedProduct, quantity);
+        return new GroupPurchaseParticipant(groupPurchase, member, productStockId, quantity);
     }
 
     protected static GroupPurchaseParticipant createWishlistParticipant(GroupPurchase groupPurchase, Member member) {

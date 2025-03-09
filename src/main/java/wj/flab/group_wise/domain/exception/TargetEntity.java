@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor @Getter
 public enum TargetEntity {
+    MEMBER("회원"),
     PRODUCT("상품"),
     PRODUCT_ATTRIBUTE("상품 속성"),
     PRODUCT_ATTRIBUTE_VALUE("상품 속성 값"),

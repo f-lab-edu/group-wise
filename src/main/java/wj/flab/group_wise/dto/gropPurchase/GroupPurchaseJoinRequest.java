@@ -5,7 +5,8 @@ import org.hibernate.validator.constraints.Range;
 
 public record GroupPurchaseJoinRequest(
     @NotNull Long groupPurchaseId,
-    @NotNull Long MemberId,
+    @NotNull Long memberId,
+    @NotNull Long productId,
     @NotNull Long productStockId,
     @Range(min = 1) int quantity
     ) {}

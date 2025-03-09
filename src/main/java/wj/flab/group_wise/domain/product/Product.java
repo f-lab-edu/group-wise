@@ -33,6 +33,7 @@ import wj.flab.group_wise.util.ListUtils;
 public class Product extends BaseTimeEntity {
 
     public enum SaleStatus {
+        PREPARE,    // 준비중
         SALE,       // 판매중
         SOLD_OUT,   // 품절
         DISCONTINUE // 단종
@@ -206,19 +207,15 @@ public class Product extends BaseTimeEntity {
             .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_ATTRIBUTE, productAttributeId));
     }
 
-    private ProductStock getTargetStock(Long stockId) {
+    public ProductStock getTargetStock(Long stockId) {
         return productStocks.stream()
             .filter(s -> s.getId().equals(stockId))
             .findFirst()
             .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_STOCK, stockId));
     }
 
-    public void decreaseStockQuantity(Long productStockId, int quantity) {
-        ProductStock targetStock = productStocks.stream()
-            .filter(s -> s.getId().equals(productStockId))
-            .findFirst()
-            .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_STOCK, productStockId));
-
+    public void decreaseStockQuantity(Long stockId, int quantity) {
+        ProductStock targetStock = getTargetStock(stockId);
         targetStock.decreaseStockQuantity(quantity);
     }
 }

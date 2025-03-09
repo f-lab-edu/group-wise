@@ -19,7 +19,6 @@ import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 import wj.flab.group_wise.domain.Member;
-import wj.flab.group_wise.domain.product.ProductStock;
 
 @Entity
 @NoArgsConstructor(access = PROTECTED)
@@ -41,11 +40,9 @@ public class GroupPurchase extends BaseTimeEntity { // 공동구매 그룹
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Getter
     private Long id;
-    private String title;                   // 공동구매 게시물 제목
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "product_id")
-//    private Product product;                // 상품
+    @Getter
+    private String title;                   // 공동구매 게시물 제목
     private Long productId;                 // 상품 ID
 
     private Integer discountRate;           // 할인율
@@ -64,7 +61,7 @@ public class GroupPurchase extends BaseTimeEntity { // 공동구매 그룹
     )
     private List<GroupPurchaseParticipant> groupPurchaseParticipants = new ArrayList<>(); // 참여 회원
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING) @Getter
     private Status status;                                                                // 진행 상태
 
     public static GroupPurchase createGroupPurchase(String title, Long productId, Integer discountRate, Integer initialPrice, Integer minimumParticipants, LocalDateTime startDate, LocalDateTime endDate) {
@@ -107,13 +104,17 @@ public class GroupPurchase extends BaseTimeEntity { // 공동구매 그룹
         status = Status.CANCELLED;
     }
 
-    public void addParticipant(Member member, ProductStock selectedProduct, Integer quantity) {
+    public void addParticipant(Member member, Long productStockId, Integer quantity) {
         if (!canJoin()) {
             throw new IllegalStateException("현재 참여가 불가능한 공동구매입니다.");
         }
 
         this.groupPurchaseParticipants.add(
-            GroupPurchaseParticipant.createPurchaseParticipant(this, member, selectedProduct, quantity));
+            GroupPurchaseParticipant.createPurchaseParticipant(this, member, productStockId, quantity));
+    }
+
+    private boolean canJoin() {
+        return status == Status.ONGOING && LocalDateTime.now().isBefore(endDate);
     }
 
     public Status complete() {
@@ -134,20 +135,16 @@ public class GroupPurchase extends BaseTimeEntity { // 공동구매 그룹
         return status;
     }
 
-    public boolean canJoin() {
-        return status == Status.ONGOING && LocalDateTime.now().isBefore(endDate);
-    }
-
     public boolean isMinimumParticipantsMet() {
         return groupPurchaseParticipants.size() >= minimumParticipants;
     }
 
-    public boolean isOngoing() {
-        return status == Status.ONGOING;
-    }
-
     public boolean isModifiable() {
         return status == Status.PENDING;
+    }
+
+    public int getCurrentParticipants() {
+        return groupPurchaseParticipants.size();
     }
 
 }
