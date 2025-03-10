@@ -60,6 +60,7 @@ public class GroupPurchaseService {
         );
     }
 
+    @Transactional(readOnly = true)
     public GroupPurchase findGroupPurchase(Long groupPurchaseId) {
         return groupPurchaseRepository.findById(groupPurchaseId)
             .orElseThrow(() -> new EntityNotFoundException(TargetEntity.GROUP_PURCHASE, groupPurchaseId));

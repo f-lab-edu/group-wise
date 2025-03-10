@@ -66,6 +66,7 @@ public class ProductService {
         product.restructureAttributes(productToUpdate);
     }
 
+    @Transactional(readOnly = true)
     public Product findProduct(Long productId) {
         return productRepository.findById(productId)
             .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT, productId));
