@@ -39,51 +39,28 @@ class GroupPurchaseServiceTest {
     @Test
     void createGroupPurchase() {
         // given
-        Long productId = productService.createProduct(productDomainDtoCreator.createProductToCreate(1, 1));
-        GroupPurchaseCreateRequest groupCreateRequest = new GroupPurchaseCreateRequest(
-            "공동구매 1",
-            productId,
-            10,
-            10000,
-            10,
-            LocalDateTime.now().plusDays(1),
-            LocalDateTime.now().plusDays(2)
-        );
+        Long productId = setAndGetProductId();
 
         // when : 공동구매 생성
-        Long groupPurchaseId = groupPurchaseService.createGroupPurchase(groupCreateRequest);
+        Long groupPurchaseId = setAndGetGroupPurchaseId(productId, "공동구매 1");
 
         // then : 공동구매 생성 확인
         GroupPurchase groupPurchase = groupPurchaseService.findGroupPurchase(groupPurchaseId);
         Assertions.assertThat(groupPurchase.getTitle()).isEqualTo("공동구매 1");
     }
 
+    private Long setAndGetGroupPurchaseId(Long productId, String title) {
+        return groupPurchaseService.createGroupPurchase(getGroupPurchaseCreateRequest(productId, title));
+    }
+
     @Test
     void updateGroupPurchase() {
         // given
-        Long productId = productService.createProduct(productDomainDtoCreator.createProductToCreate(1, 1));
-        GroupPurchaseCreateRequest groupCreateRequest = new GroupPurchaseCreateRequest(
-            "공동구매 1",
-            productId,
-            10,
-            10000,
-            10,
-            LocalDateTime.now().plusDays(1),
-            LocalDateTime.now().plusDays(2)
-        );
-        Long groupPurchaseId = groupPurchaseService.createGroupPurchase(groupCreateRequest);
+        Long productId = setAndGetProductId();
+        Long groupPurchaseId = setAndGetGroupPurchaseId(productId, "공동구매 1");
 
         // when : 공동구매 수정
-        groupPurchaseService.updateGroupPurchase(new GroupPurchaseUpdateRequest(
-            groupPurchaseId,
-            "공동구매 2",
-            productId,
-            20,
-            20000,
-            20,
-            LocalDateTime.now().plusDays(3),
-            LocalDateTime.now().plusDays(4)
-        ));
+        groupPurchaseService.updateGroupPurchase(getGroupUpdateRequest(groupPurchaseId, productId, "공동구매 2"));
 
         // then : 공동구매 수정 확인
         GroupPurchase groupPurchase = groupPurchaseService.findGroupPurchase(groupPurchaseId);
@@ -93,17 +70,8 @@ class GroupPurchaseServiceTest {
     @Test
     void deleteGroupPurchase() {
         // given
-        Long productId = productService.createProduct(productDomainDtoCreator.createProductToCreate(1, 1));
-        GroupPurchaseCreateRequest groupCreateRequest = new GroupPurchaseCreateRequest(
-            "공동구매 1",
-            productId,
-            10,
-            10000,
-            10,
-            LocalDateTime.now().plusDays(1),
-            LocalDateTime.now().plusDays(2)
-        );
-        Long groupPurchaseId = groupPurchaseService.createGroupPurchase(groupCreateRequest);
+        Long productId = setAndGetProductId();
+        Long groupPurchaseId = setAndGetGroupPurchaseId(productId, "공동구매");
 
         // when : 공동구매 삭제
         groupPurchaseService.deleteGroupPurchase(new GroupPurchaseDeleteRequest(groupPurchaseId));
@@ -116,17 +84,8 @@ class GroupPurchaseServiceTest {
     @Test
     void startGroupPurchase() {
         // given
-        Long productId = productService.createProduct(productDomainDtoCreator.createProductToCreate(1, 1));
-        GroupPurchaseCreateRequest groupCreateRequest = new GroupPurchaseCreateRequest(
-            "공동구매 1",
-            productId,
-            10,
-            10000,
-            10,
-            LocalDateTime.now().plusDays(1),
-            LocalDateTime.now().plusDays(2)
-        );
-        Long groupPurchaseId = groupPurchaseService.createGroupPurchase(groupCreateRequest);
+        Long productId = setAndGetProductId();
+        Long groupPurchaseId = setAndGetGroupPurchaseId(productId, "공동구매");
 
         // when : 공동구매 시작
         groupPurchaseService.startGroupPurchase(new GroupPurchaseStartRequest(groupPurchaseId));
@@ -139,18 +98,8 @@ class GroupPurchaseServiceTest {
     @Test
     void cancelGroupPurchase() {
         // given
-        Long productId = productService.createProduct(productDomainDtoCreator.createProductToCreate(1, 1));
-        GroupPurchaseCreateRequest groupCreateRequest = new GroupPurchaseCreateRequest(
-            "공동구매 1",
-            productId,
-            10,
-            10000,
-            10,
-            LocalDateTime.now().plusDays(1),
-            LocalDateTime.now().plusDays(2)
-        );
-        Long groupPurchaseId = groupPurchaseService.createGroupPurchase(groupCreateRequest);
-        groupPurchaseService.startGroupPurchase(new GroupPurchaseStartRequest(groupPurchaseId));
+        Long productId = setAndGetProductId();
+        Long groupPurchaseId = setAndGetStartedGroupPurchaseId(productId);
 
         // when : 공동구매 취소
         groupPurchaseService.cancelGroupPurchase(new GroupPurchaseCancelRequest(groupPurchaseId));
@@ -163,14 +112,47 @@ class GroupPurchaseServiceTest {
     @Test
     void joinGroupPurchase() {
         // given
-        Long productId = productService.createProduct(productDomainDtoCreator.createProductToCreate(1, 1));
+        Long productId = setAndGetProductId();
+        Long stockId = setAndGetProductStockId(productId);
+        Long groupPurchaseId = setAndGetStartedGroupPurchaseId(productId);
+        Long memberId = setAndGetMemberId();
+
+        // when : 공동구매 참여
+        groupPurchaseService.joinGroupPurchase(
+            new GroupPurchaseJoinRequest(groupPurchaseId, memberId, productId, stockId, 1));
+
+        // then : 공동구매 참여 확인
+        GroupPurchase groupPurchase = groupPurchaseService.findGroupPurchase(groupPurchaseId);
+        Assertions.assertThat(groupPurchase.getCurrentParticipants()).isEqualTo(1);
+    }
+
+    private Long setAndGetProductId() {
+        return productService.createProduct(productDomainDtoCreator.createProductToCreate(1, 1));
+    }
+
+    private Long setAndGetProductStockId(Long productId) {
         Product product = productService.findProduct(productId);
         ProductStockSetRequest productStockSetRequest = productDomainDtoCreator.createStockToSet(productId, product.getProductStocks());
         productService.setProductStock(productStockSetRequest);
 
         ProductStock stock = product.getProductStocks().get(0);
-        GroupPurchaseCreateRequest groupCreateRequest = new GroupPurchaseCreateRequest(
-            "공동구매 1",
+        return stock.getId();
+    }
+
+    private Long setAndGetMemberId() {
+        return memberService.createMember(
+            new MemberCreateRequest("member1", "password1", "address"));
+    }
+
+    private Long setAndGetStartedGroupPurchaseId(Long productId) {
+        Long groupPurchaseId = groupPurchaseService.createGroupPurchase(getGroupPurchaseCreateRequest(productId, "공동구매"));
+        groupPurchaseService.startGroupPurchase(new GroupPurchaseStartRequest(groupPurchaseId));
+        return groupPurchaseId;
+    }
+
+    private static GroupPurchaseCreateRequest getGroupPurchaseCreateRequest(Long productId, String title) {
+        return new GroupPurchaseCreateRequest(
+            title,
             productId,
             10,
             10000,
@@ -178,17 +160,18 @@ class GroupPurchaseServiceTest {
             LocalDateTime.now().plusDays(1),
             LocalDateTime.now().plusDays(2)
         );
-        Long groupPurchaseId = groupPurchaseService.createGroupPurchase(groupCreateRequest);
-        groupPurchaseService.startGroupPurchase(new GroupPurchaseStartRequest(groupPurchaseId));
-        Long memberId = memberService.createMember(
-            new MemberCreateRequest("member1", "password1", "address"));
+    }
 
-        // when : 공동구매 참여
-        groupPurchaseService.joinGroupPurchase(
-            new GroupPurchaseJoinRequest(groupPurchaseId, memberId, productId, stock.getId(), 1));
-
-        // then : 공동구매 참여 확인
-        GroupPurchase groupPurchase = groupPurchaseService.findGroupPurchase(groupPurchaseId);
-        Assertions.assertThat(groupPurchase.getCurrentParticipants()).isEqualTo(1);
+    private static GroupPurchaseUpdateRequest getGroupUpdateRequest(Long groupPurchaseId, Long productId, String title) {
+        return new GroupPurchaseUpdateRequest(
+            groupPurchaseId,
+            title,
+            productId,
+            20,
+            20000,
+            20,
+            LocalDateTime.now().plusDays(3),
+            LocalDateTime.now().plusDays(4)
+        );
     }
 }
