@@ -17,22 +17,23 @@ import org.hibernate.validator.constraints.Range;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
 import wj.flab.group_wise.domain.exception.TargetEntity;
-import wj.flab.group_wise.dto.ProductCreateRequest.AttributeCreateRequest;
-import wj.flab.group_wise.dto.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
-import wj.flab.group_wise.dto.ProductDetailUpdateRequest;
-import wj.flab.group_wise.dto.ProductDetailUpdateRequest.AttributeDeleteRequest;
-import wj.flab.group_wise.dto.ProductDetailUpdateRequest.AttributeUpdateRequest;
-import wj.flab.group_wise.dto.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueDeleteRequest;
-import wj.flab.group_wise.dto.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueUpdateRequest;
-import wj.flab.group_wise.dto.ProductStockAddRequest.StockAddRequest;
-import wj.flab.group_wise.dto.ProductStockSetRequest.StockDeleteRequest;
-import wj.flab.group_wise.dto.ProductStockSetRequest.StockQuantitySetRequest;
+import wj.flab.group_wise.dto.product.ProductStockAddRequest.StockAddRequest;
+import wj.flab.group_wise.dto.product.ProductStockSetRequest.StockDeleteRequest;
+import wj.flab.group_wise.dto.product.ProductStockSetRequest.StockQuantitySetRequest;
+import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest;
+import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
+import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest;
+import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeDeleteRequest;
+import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest;
+import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueDeleteRequest;
+import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueUpdateRequest;
 import wj.flab.group_wise.util.ListUtils;
 
 @Entity @Getter
 public class Product extends BaseTimeEntity {
 
     public enum SaleStatus {
+        PREPARE,    // 준비중
         SALE,       // 판매중
         SOLD_OUT,   // 품절
         DISCONTINUE // 단종
@@ -206,10 +207,15 @@ public class Product extends BaseTimeEntity {
             .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_ATTRIBUTE, productAttributeId));
     }
 
-    private ProductStock getTargetStock(Long stockId) {
+    public ProductStock getTargetStock(Long stockId) {
         return productStocks.stream()
             .filter(s -> s.getId().equals(stockId))
             .findFirst()
             .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_STOCK, stockId));
+    }
+
+    public void decreaseStockQuantity(Long stockId, int quantity) {
+        ProductStock targetStock = getTargetStock(stockId);
+        targetStock.decreaseStockQuantity(quantity);
     }
 }

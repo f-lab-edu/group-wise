@@ -1,5 +1,8 @@
 package wj.flab.group_wise.domain.groupPurchase;
 
+import static lombok.AccessLevel.PROTECTED;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -7,18 +10,18 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import wj.flab.group_wise.domain.BaseTimeEntity;
-import wj.flab.group_wise.domain.product.Product;
+import wj.flab.group_wise.domain.Member;
 
 @Entity
+@NoArgsConstructor(access = PROTECTED)
 public class GroupPurchase extends BaseTimeEntity { // 공동구매 그룹
 
     @Getter
@@ -35,12 +38,13 @@ public class GroupPurchase extends BaseTimeEntity { // 공동구매 그룹
     }
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Getter
     private Long id;
-    private String title;                   // 공동구매 게시물 제목
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
-    private Product product;                // 상품
+    @Getter
+    private String title;                   // 공동구매 게시물 제목
+    private Long productId;                 // 상품 ID
+
     private Integer discountRate;           // 할인율
     private Integer initialPrice;           // 공구 가격 (할인율이 적용된, 옵션이 최종구성된 상품 가격 중 최소금액)
     private Integer minimumParticipants;    // 최소 진행 인원
@@ -49,32 +53,98 @@ public class GroupPurchase extends BaseTimeEntity { // 공동구매 그룹
     private LocalDateTime startDate;        // 시작일
     private LocalDateTime endDate;          // 종료일
 
-    @OneToMany(mappedBy = "groupPurchase")  // 참여 회원
-    private List<GroupPurchaseParticipant> groupPurchaseParticipants = new ArrayList<>();
+    @OneToMany(
+        mappedBy = "groupPurchase",
+        fetch = FetchType.LAZY,
+        cascade = CascadeType.ALL,
+        orphanRemoval = true
+    )
+    private List<GroupPurchaseParticipant> groupPurchaseParticipants = new ArrayList<>(); // 참여 회원
 
-    @Enumerated(EnumType.STRING)
-    private Status status;                  // 진행 상태
+    @Enumerated(EnumType.STRING) @Getter
+    private Status status;                                                                // 진행 상태
+
+    public static GroupPurchase createGroupPurchase(String title, Long productId, Integer discountRate, Integer initialPrice, Integer minimumParticipants, LocalDateTime startDate, LocalDateTime endDate) {
+        GroupPurchase groupPurchase = new GroupPurchase();
+        groupPurchase.title = title;
+        groupPurchase.productId = productId;
+        groupPurchase.discountRate = discountRate;
+        groupPurchase.initialPrice = initialPrice;
+        groupPurchase.minimumParticipants = minimumParticipants;
+        groupPurchase.startDate = startDate;
+        groupPurchase.endDate = endDate;
+        groupPurchase.status = Status.PENDING;
+        return groupPurchase;
+    }
+
+    public void updateGroupPurchaseInfo(String title, Long productId, Integer discountRate, Integer initialPrice, Integer minimumParticipants, LocalDateTime startDate, LocalDateTime endDate) {
+        if (status != Status.PENDING) {
+            throw new IllegalStateException("진행 중인 공동구매는 수정할 수 없습니다.");
+        }
+        this.title = title;
+        this.productId = productId;
+        this.discountRate = discountRate;
+        this.initialPrice = initialPrice;
+        this.minimumParticipants = minimumParticipants;
+        this.startDate = startDate;
+        this.endDate = endDate;
+    }
+
+    public void start() {
+        if (status != Status.PENDING) {
+            throw new IllegalStateException("이미 시작된 공동구매입니다.");
+        }
+        status = Status.ONGOING;
+    }
+
+    public void cancel() {
+        if (status != Status.ONGOING) {
+            throw new IllegalStateException("진행 중인 공동구매가 아닙니다.");
+        }
+        status = Status.CANCELLED;
+    }
+
+    public void addParticipant(Member member, Long productStockId, Integer quantity) {
+        if (!canJoin()) {
+            throw new IllegalStateException("현재 참여가 불가능한 공동구매입니다.");
+        }
+
+        this.groupPurchaseParticipants.add(
+            GroupPurchaseParticipant.createPurchaseParticipant(this, member, productStockId, quantity));
+    }
+
+    private boolean canJoin() {
+        return status == Status.ONGOING && LocalDateTime.now().isBefore(endDate);
+    }
+
+    public Status complete() {
+        if (status != Status.ONGOING) {
+            throw new IllegalStateException("진행 중인 공동구매가 아닙니다.");
+        }
+
+        if (groupPurchaseParticipants.size() < minimumParticipants) {
+            status = Status.COMPLETED_FAILURE;
+        } else {
+            status = Status.COMPLETED_SUCCESS;
+        }
+
+        // todo 완료 이벤트 발생
+        // - 참여자에게 알림
+        // - 성공시 주문 객체 생성
+
+        return status;
+    }
 
     public boolean isMinimumParticipantsMet() {
         return groupPurchaseParticipants.size() >= minimumParticipants;
     }
 
-    public boolean isOngoing() {
-        return status == Status.ONGOING;
+    public boolean isModifiable() {
+        return status == Status.PENDING;
     }
 
-    public boolean canJoin() {
-        return status == Status.ONGOING && LocalDateTime.now().isBefore(endDate);
-    }
-
-    // todo
-    public void addParticipant() {
-/*        if (!canJoin()) {
-            throw new IllegalStateException("현재 참여가 불가능한 공동구매입니다.");
-        }
-        if (isMinimumParticipantsMet()) {
-            // 최소 인원 달성 이벤트 발생
-        }*/
+    public int getCurrentParticipants() {
+        return groupPurchaseParticipants.size();
     }
 
 }

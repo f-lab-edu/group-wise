@@ -3,7 +3,23 @@ spring:
     activate:
       on-profile: test
   datasource:
-    url: jdbc:h2:tcp://localhost/~/test
+#    url: jdbc:h2:tcp://localhost/~/test
+    url: jdbc:h2:mem:testdb  # 메모리 DB 사용
     username: sa
     password:
     driver-class-name: org.h2.Driver
+  h2:
+    console:
+      enabled: true  # H2 콘솔 활성화
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        #        show_sql: true
+        format_sql: true
+        highlight_sql: true        # SQL 하이라이트 추가
+        use_sql_comments: true     # JPQL 쿼리 주석 추가
+    #        javax.persistence.schema-validation.before-flyway: false
+  flyway:
+    enabled: false

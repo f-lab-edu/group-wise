@@ -65,7 +65,10 @@ public class ProductStock extends BaseTimeEntity implements Purchasable {
         return stockQuantity == null ? 0 : stockQuantity;
     }
 
-    protected void removeStockQuantity(int quantity) {
+    protected void decreaseStockQuantity(int quantity) {
+        if (stockQuantity - quantity < 0) {
+            throw new IllegalStateException("재고가 부족합니다.");
+        }
         stockQuantity -= quantity;
     }
 

@@ -1,16 +1,17 @@
 package wj.flab.group_wise.service;
 
-import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import wj.flab.group_wise.domain.exception.EntityNotFoundException;
+import wj.flab.group_wise.domain.exception.TargetEntity;
 import wj.flab.group_wise.domain.product.Product;
-import wj.flab.group_wise.dto.ProductCreateRequest;
-import wj.flab.group_wise.dto.ProductDetailUpdateRequest;
-import wj.flab.group_wise.dto.ProductStockAddRequest;
-import wj.flab.group_wise.dto.ProductStockAddRequest.StockAddRequest;
-import wj.flab.group_wise.dto.ProductStockSetRequest;
+import wj.flab.group_wise.dto.product.ProductStockAddRequest;
+import wj.flab.group_wise.dto.product.ProductStockAddRequest.StockAddRequest;
+import wj.flab.group_wise.dto.product.ProductStockSetRequest;
+import wj.flab.group_wise.dto.product.ProductCreateRequest;
+import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest;
 import wj.flab.group_wise.repository.ProductRepository;
 
 @Service
@@ -40,20 +41,20 @@ public class ProductService {
     }
 
     public void setProductStock(ProductStockSetRequest productToSetStock) {
-        Product product = getProduct(productToSetStock.productId());
+        Product product = findProduct(productToSetStock.productId());
         productValidator.validateProductLifeCycleBeforeMajorUpdate(product);
         product.setProductStocks(productToSetStock.stockQuantitySetRequests());
         product.deleteProductStocks(productToSetStock.stockDeleteRequests());
     }
 
     public void addProductStock(ProductStockAddRequest productToAddStock) {
-        Product product = getProduct(productToAddStock.productId());
+        Product product = findProduct(productToAddStock.productId());
         List<StockAddRequest> stockAddRequests = productToAddStock.stockAddRequests();
         product.addProductStocks(stockAddRequests);
     }
 
     public void updateProductDetails(ProductDetailUpdateRequest productToUpdate) {
-        Product product = getProduct(productToUpdate.productId());
+        Product product = findProduct(productToUpdate.productId());
         productValidator.validateProductLifeCycleBeforeMajorUpdate(product);
 
         product.updateProductBasicInfo(
@@ -65,13 +66,14 @@ public class ProductService {
         product.restructureAttributes(productToUpdate);
     }
 
-    private Product getProduct(Long productId) {
+    @Transactional(readOnly = true)
+    public Product findProduct(Long productId) {
         return productRepository.findById(productId)
-            .orElseThrow(() -> new EntityNotFoundException(String.format("%d", productId)));
+            .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT, productId));
     }
 
     public void deleteProduct(Long productId) {
-        Product product = getProduct(productId);
+        Product product = findProduct(productId);
         productValidator.validateProductLifeCycleBeforeMajorUpdate(product);
         productRepository.delete(product);
     }
