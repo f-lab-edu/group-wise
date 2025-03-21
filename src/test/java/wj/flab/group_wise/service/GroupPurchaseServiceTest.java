@@ -140,7 +140,7 @@ class GroupPurchaseServiceTest {
     }
 
     private Long setAndGetMemberId() {
-        return memberService.createMember(
+        return memberService.registerMember(
             new MemberCreateRequest("member1", "password1", "address"));
     }
 
