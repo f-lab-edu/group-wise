@@ -88,4 +88,5 @@ public class ProductStock extends BaseTimeEntity implements Purchasable {
     protected boolean hasStockQuantitySet() {
         return stockQuantity != null;
     }
+
 }

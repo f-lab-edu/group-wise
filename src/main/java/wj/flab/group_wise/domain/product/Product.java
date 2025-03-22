@@ -179,6 +179,7 @@ public class Product extends BaseTimeEntity {
     }
 
     private void renewProductStocks() {
+        productStocks.forEach(stock -> stock.getValues().clear());
         productStocks.clear();
         createStockCombinations();
         saleStatus = SaleStatus.PREPARE;
