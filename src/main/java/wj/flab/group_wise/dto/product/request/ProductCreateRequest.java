@@ -13,21 +13,21 @@ import wj.flab.group_wise.domain.product.Product.SaleStatus;
  * @param productName          상품명
  * @param basePrice            기준가(정가)
  * @param saleStatus           판매상태
- * @param attributeAddDtos 상품의 선택항목명과 값
+ * @param attributes 상품의 선택항목명과 값
  */
 public record ProductCreateRequest(@NotBlank String seller,
                                    @NotBlank String productName,
                                    @Range(min = 0) int basePrice,
                                    @Enumerated(EnumType.STRING) SaleStatus saleStatus,
-                                   List<AttributeCreateRequest> attributeAddDtos) {
+                                   List<AttributeCreateRequest> attributes) {
 
     /**
      * @param attributeName          상품의 선택항목명 (ex. 색상, 사이즈 등)
-     * @param productAttributeValues 상품의 선택항목 값 (ex. 빨강, M 등)
+     * @param attributeValues 상품의 선택항목 값 (ex. 빨강, M 등)
      */
 
     public record AttributeCreateRequest(@NotBlank String attributeName,
-                                         List<AttributeValueCreateRequest> productAttributeValues) {
+                                         List<AttributeValueCreateRequest> attributeValues) {
 
         /**
          * @param attributeValueName  상품의 선택항목 값 (ex. 빨강, M 등)

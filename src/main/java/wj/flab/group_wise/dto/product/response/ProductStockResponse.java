@@ -17,7 +17,7 @@ public record ProductStockResponse(
     @QueryProjection
     public ProductStockResponse {}
 
-    record ProductAttributeValueResponse(
+    public record ProductAttributeValueResponse(
         Long productAttributeId,
         String attributeName,
         Long productAttributeValueId,

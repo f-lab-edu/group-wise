@@ -2,30 +2,35 @@ package wj.flab.group_wise.service;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
 import wj.flab.group_wise.domain.exception.TargetEntity;
 import wj.flab.group_wise.domain.product.Product;
+import wj.flab.group_wise.dto.product.request.ProductCreateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest;
 import wj.flab.group_wise.dto.product.request.ProductStockAddRequest;
 import wj.flab.group_wise.dto.product.request.ProductStockAddRequest.StockAddRequest;
 import wj.flab.group_wise.dto.product.request.ProductStockSetRequest;
-import wj.flab.group_wise.dto.product.request.ProductCreateRequest;
-import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest;
+import wj.flab.group_wise.dto.product.response.ProductViewResponse;
 import wj.flab.group_wise.repository.ProductRepository;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductValidator productValidator;
 
-    public Product getProductInfo(Long productId) {
-        Product product = findProduct(productId);
-
-        return null;
+    public ProductViewResponse getProductInfo(Long productId) {
+        ProductViewResponse productInfo = productRepository.findProductViewById(productId);
+        if (productInfo == null) {
+            throw new EntityNotFoundException(TargetEntity.PRODUCT, productId);
+        }
+        return productInfo;
     }
 
     public Long createProduct(ProductCreateRequest productToCreate) {
@@ -37,7 +42,7 @@ public class ProductService {
     private Product processCreateProduct(ProductCreateRequest productToCreate) {
         Product product = productToCreate.toEntity();
         productValidator.validateAddProduct(product);
-        product.appendProductAttributes(productToCreate.attributeAddDtos());
+        product.appendProductAttributes(productToCreate.attributes());
         return product;
     }
 
@@ -65,6 +70,7 @@ public class ProductService {
             productToUpdate.saleStatus());
 
         product.restructureAttributes(productToUpdate);
+        log.info(product.toString());
     }
 
     public void updateProductSaleStatus(Long productId, Product.SaleStatus saleStatus) {

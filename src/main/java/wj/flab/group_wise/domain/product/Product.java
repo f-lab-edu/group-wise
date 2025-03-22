@@ -124,7 +124,7 @@ public class Product extends BaseTimeEntity {
 
     private void convertToAttrEntityAndAppendToAttrList(AttributeCreateRequest attr) {
         ProductAttribute newAttribute = new ProductAttribute(attr.attributeName(), this);
-        newAttribute.appendValues(attr.productAttributeValues());
+        newAttribute.appendValues(attr.attributeValues());
         productAttributes.add(newAttribute);
     }
 
