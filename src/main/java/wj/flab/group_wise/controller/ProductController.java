@@ -26,7 +26,7 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping("{productId}")
-    public ResponseEntity<ProductViewResponse> getProductInfo(@PathVariable("productId") Long productId) {
+    public ResponseEntity<ProductViewResponse> getProductInfo(@PathVariable("productId") long productId) {
         return ResponseEntity.ok(productService.getProductInfo(productId));
     }
 
@@ -37,19 +37,31 @@ public class ProductController {
     }
 
     @PostMapping("{productId}/stocks")
-    public ResponseEntity<Void> setProductStock(@RequestBody ProductStockSetRequest productToSetStock) {
+    public ResponseEntity<Void> setProductStock(
+        @PathVariable("productId") long productId,
+        @RequestBody ProductStockSetRequest productToSetStock) {
+
+        validateProductId(productId, productToSetStock.productId());
         productService.setProductStock(productToSetStock);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("{productId}/stocks/add")
-    public ResponseEntity<Void> addProductStock(@RequestBody ProductStockAddRequest productToAddStock) {
+    public ResponseEntity<Void> addProductStock(
+        @PathVariable("productId") long productId,
+        @RequestBody ProductStockAddRequest productToAddStock) {
+
+        validateProductId(productId, productToAddStock.productId());
         productService.addProductStock(productToAddStock);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("{productId}")
-    public ResponseEntity<Void> updateProductAndAttribute(@RequestBody ProductDetailUpdateRequest productToUpdate) {
+    public ResponseEntity<Void> updateProductAndAttribute(
+        @PathVariable("productId") long productId,
+        @RequestBody ProductDetailUpdateRequest productToUpdate) {
+
+        validateProductId(productId, productToUpdate.productId());
         productService.updateProductDetails(productToUpdate);
         return ResponseEntity.ok().build();
     }
@@ -58,6 +70,12 @@ public class ProductController {
     public ResponseEntity<Void> deleteProduct(@PathVariable("productId") Long productId) {
         productService.deleteProduct(productId);
         return ResponseEntity.ok().build();
+    }
+
+    private void validateProductId(long pathVariable, long requestBody) {
+        if (pathVariable != requestBody) {
+            throw new IllegalArgumentException("productId in path and request body are different");
+        }
     }
 
 }
