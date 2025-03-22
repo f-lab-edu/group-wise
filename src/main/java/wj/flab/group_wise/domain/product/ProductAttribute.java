@@ -1,5 +1,7 @@
 package wj.flab.group_wise.domain.product;
 
+import static lombok.AccessLevel.PROTECTED;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -12,9 +14,10 @@ import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 import wj.flab.group_wise.domain.exception.AlreadyExistsException;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
@@ -25,14 +28,17 @@ import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdate
 import wj.flab.group_wise.util.ListUtils.ContainerOfValues;
 
 @Entity
-@Getter
+@NoArgsConstructor(access = PROTECTED)
 public class ProductAttribute extends BaseTimeEntity implements ContainerOfValues<ProductAttributeValue> {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @Getter
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotBlank
-    @Setter
+//    @Setter
+    @Getter
     private String attributeName;                // 상품의 선택항목명 (ex. 색상, 사이즈 등)
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -44,10 +50,17 @@ public class ProductAttribute extends BaseTimeEntity implements ContainerOfValue
         mappedBy = "productAttribute",
         fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
-        orphanRemoval = true )
+        orphanRemoval = true)
     private List<ProductAttributeValue> values = new ArrayList<>();    // 옵션목록
 
-    protected ProductAttribute() {}
+    @Override
+    public List<ProductAttributeValue> getValues() {
+        return values;
+    }
+
+    public List<ProductAttributeValue> getValuesView() {
+        return Collections.unmodifiableList(values);
+    }
 
     public ProductAttribute(String attributeName, Product product) {
         this.attributeName = attributeName;

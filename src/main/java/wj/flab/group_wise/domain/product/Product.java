@@ -1,5 +1,7 @@
 package wj.flab.group_wise.domain.product;
 
+import static lombok.AccessLevel.PROTECTED;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -13,13 +15,11 @@ import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Range;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
 import wj.flab.group_wise.domain.exception.TargetEntity;
-import wj.flab.group_wise.dto.product.ProductStockAddRequest.StockAddRequest;
-import wj.flab.group_wise.dto.product.ProductStockSetRequest.StockDeleteRequest;
-import wj.flab.group_wise.dto.product.ProductStockSetRequest.StockQuantitySetRequest;
 import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest;
 import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
 import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest;
@@ -27,9 +27,13 @@ import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeDelete
 import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest;
 import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueDeleteRequest;
 import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueUpdateRequest;
+import wj.flab.group_wise.dto.product.ProductStockAddRequest.StockAddRequest;
+import wj.flab.group_wise.dto.product.ProductStockSetRequest.StockDeleteRequest;
+import wj.flab.group_wise.dto.product.ProductStockSetRequest.StockQuantitySetRequest;
 import wj.flab.group_wise.util.ListUtils;
 
-@Entity @Getter
+@Entity
+@NoArgsConstructor(access = PROTECTED)
 public class Product extends BaseTimeEntity {
 
     public enum SaleStatus {
@@ -39,7 +43,7 @@ public class Product extends BaseTimeEntity {
         DISCONTINUE // 단종
     }
 
-    @Id
+    @Id @Getter
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -49,7 +53,7 @@ public class Product extends BaseTimeEntity {
     @NotBlank
     private String productName;                 // 상품명
 
-    @Range(min = 0)
+    @Range(min = 0) @Getter
     private int basePrice;                      // 기준가(정가)
 
     @Enumerated(EnumType.STRING)
@@ -73,20 +77,35 @@ public class Product extends BaseTimeEntity {
         return new Product(seller, productName, basePrice, saleStatus);
     }
 
-    protected Product() {
-    }
-
     private Product(String seller, String productName, int basePrice, SaleStatus saleStatus) {
         this.seller = seller;
         this.productName = productName;
         this.basePrice = basePrice;
-        this.saleStatus = saleStatus;
+        changeSaleStatus(saleStatus);
     }
 
     public void updateProductBasicInfo(String seller, String productName, int basePrice, SaleStatus saleStatus) {
         this.seller = seller;
         this.productName = productName;
         this.basePrice = basePrice;
+        changeSaleStatus(saleStatus);
+    }
+
+    public void changeSaleStatus(SaleStatus saleStatus) {
+
+        if (saleStatus == SaleStatus.SALE) {
+
+            if (productStocks.isEmpty()) {
+                throw new IllegalStateException("상품 재고가 존재하지 않습니다.");
+            }
+
+            this.productStocks.stream().filter(
+                    stock -> !stock.hasStockQuantitySet())
+                .findFirst()
+                .ifPresent(stock -> {
+                    throw new IllegalStateException("재고수량이 설정되지 않은 상품이 존재합니다.");});
+        }
+
         this.saleStatus = saleStatus;
     }
 
@@ -164,6 +183,7 @@ public class Product extends BaseTimeEntity {
     private void renewProductStocks() {
         productStocks.clear();
         createStockCombinations();
+        saleStatus = SaleStatus.PREPARE;
     }
 
     private void createStockCombinations() {
@@ -207,7 +227,7 @@ public class Product extends BaseTimeEntity {
             .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_ATTRIBUTE, productAttributeId));
     }
 
-    public ProductStock getTargetStock(Long stockId) {
+    private ProductStock getTargetStock(Long stockId) {
         return productStocks.stream()
             .filter(s -> s.getId().equals(stockId))
             .findFirst()

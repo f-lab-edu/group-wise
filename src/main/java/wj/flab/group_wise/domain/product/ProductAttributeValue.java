@@ -1,5 +1,7 @@
 package wj.flab.group_wise.domain.product;
 
+import static lombok.AccessLevel.PROTECTED;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -10,15 +12,15 @@ import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Range;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 
 @Entity
 @Getter
-@EqualsAndHashCode(of = {"productAttribute", "attributeValueName"}, callSuper = false)
+@NoArgsConstructor(access = PROTECTED)
+@EqualsAndHashCode(of = {"id"}, callSuper = false)
 public class ProductAttributeValue extends BaseTimeEntity {
-
-    protected ProductAttributeValue() {}
 
     protected ProductAttributeValue(ProductAttribute productAttribute, String attributeValueName, int additionalPrice) {
         this.productAttribute = productAttribute;

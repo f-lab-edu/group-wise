@@ -22,8 +22,9 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductValidator productValidator;
 
-    public Product getProductInfo() {
-        // todo DTO 설계가 필요하다
+    public Product getProductInfo(Long productId) {
+        Product product = findProduct(productId);
+
         return null;
     }
 
