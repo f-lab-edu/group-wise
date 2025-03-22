@@ -37,8 +37,4 @@ public class ProductAttributeValueStock extends BaseTimeEntity {
         this.productAttributeValue = productAttributeValue;
         this.productStock = productStock;
     }
-
-    protected void unbindProductStock() {
-        this.productStock = null;
-    }
 }

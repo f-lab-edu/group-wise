@@ -33,8 +33,6 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
     @Override
     public ProductViewResponse findProductViewById(Long productId) {
         QProduct product = QProduct.product;
-        QProductAttribute attribute = QProductAttribute.productAttribute;
-        QProductAttributeValue attributeValue = QProductAttributeValue.productAttributeValue;
 
         // 상품 기본 정보 조회
         Product foundProduct = queryFactory
@@ -47,30 +45,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
         }
 
         // 속성 정보 조회
-        List<ProductAttributeViewResponse> attributes = queryFactory
-            .select(Projections.constructor(ProductAttributeViewResponse.class,
-                product.id,
-                attribute.id,
-                attribute.attributeName,
-                Projections.list(
-                    Projections.constructor(ProductAttributeValueResponse.class,
-                        product.id,
-                        attribute.id,
-                        attributeValue.id,
-                        attributeValue.attributeValueName,
-                        attributeValue.additionalPrice,
-                        attributeValue.createdDate,
-                        attributeValue.modifiedDate
-                    )
-                ),
-                attribute.createdDate,
-                attribute.modifiedDate
-            ))
-            .from(attribute)
-            .join(attribute.product, product)
-            .leftJoin(attribute.values, attributeValue)
-            .where(product.id.eq(productId))
-            .fetch();
+        List<ProductAttributeViewResponse> attributes = findProductAttributeWithAttributeValues(productId);
 
         // 상품 재고 정보 조회
         List<ProductStockResponse> stocks = findProductStocksWithAttributeValues(productId);
@@ -86,6 +61,60 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
             foundProduct.getCreatedDate(),
             foundProduct.getModifiedDate()
         );
+    }
+
+    private List<ProductAttributeViewResponse> findProductAttributeWithAttributeValues(Long productId) {
+        QProduct product = QProduct.product;
+        QProductAttribute attribute = QProductAttribute.productAttribute;
+        QProductAttributeValue attributeValue = QProductAttributeValue.productAttributeValue;
+
+        List<ProductAttributeInfo> results = queryFactory
+            .select(
+                Projections.constructor(ProductAttributeInfo.class,
+                    product.id,
+                    attribute.id,
+                    attribute.attributeName,
+                    attribute.createdDate,
+                    attribute.modifiedDate,
+                    attributeValue.id,
+                    attributeValue.attributeValueName,
+                    attributeValue.additionalPrice,
+                    attributeValue.createdDate,
+                    attributeValue.modifiedDate)
+            )
+            .from(attribute)
+            .join(attribute.product, product)
+            .leftJoin(attribute.values, attributeValue)
+            .where(product.id.eq(productId))
+            .fetch();
+
+        Map<Long, ProductAttributeViewResponse> attributeViewResponseMap = new HashMap<>();
+        results.forEach(attrInfo -> {
+            ProductAttributeViewResponse attributeViewResponse = attributeViewResponseMap.computeIfAbsent(
+                attrInfo.attributeId(),
+                k -> new ProductAttributeViewResponse(
+                    attrInfo.productId(),
+                    attrInfo.attributeId(),
+                    attrInfo.attributeName(),
+                    new ArrayList<>(),
+                    attrInfo.attributeCreatedDate(),
+                    attrInfo.attributeModifiedDate()
+                )
+            );
+
+            attributeViewResponse.attributeValues().add(
+                new ProductAttributeValueResponse(
+                    attrInfo.productId(),
+                    attrInfo.attributeId(),
+                    attrInfo.attributeValueId(),
+                    attrInfo.attributeValueName(),
+                    attrInfo.additionalPrice(),
+                    attrInfo.valueCreatedDate(),
+                    attrInfo.valueModifiedDate()
+                ));
+        });
+
+        return new ArrayList<>(attributeViewResponseMap.values());
     }
 
     private List<ProductStockResponse> findProductStocksWithAttributeValues(Long productId) {
@@ -181,6 +210,7 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
 
     // 임시 데이터 저장용 클래스
     private static class StockInfo {
+
         private final Long productId;
         private final Long stockId;
         private final int stockQuantity;
@@ -202,6 +232,23 @@ public class ProductRepositoryImpl implements ProductRepositoryCustom {
             this.modifiedDate = modifiedDate;
         }
     }
+
+    public record ProductAttributeInfo(
+        Long productId,
+        Long attributeId,
+        String attributeName,
+        LocalDateTime attributeCreatedDate,
+        LocalDateTime attributeModifiedDate,
+        Long attributeValueId,
+        String attributeValueName,
+        int additionalPrice,
+        LocalDateTime valueCreatedDate,
+        LocalDateTime valueModifiedDate
+    ) {
+
+    }
+
+    ;
 }
 
 
