@@ -1,4 +1,4 @@
-package wj.flab.group_wise.dto.product;
+package wj.flab.group_wise.dto.product.response;
 
 import java.time.LocalDateTime;
 import java.util.List;

@@ -1,4 +1,4 @@
-package wj.flab.group_wise.dto.product;
+package wj.flab.group_wise.dto.product.request;
 
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -40,6 +40,6 @@ public record ProductCreateRequest(@NotBlank String seller,
 
 
     public Product toEntity() {
-        return Product.createProduct(seller, productName, basePrice, saleStatus);
+        return Product.createProduct(seller, productName, basePrice);
     }
 }

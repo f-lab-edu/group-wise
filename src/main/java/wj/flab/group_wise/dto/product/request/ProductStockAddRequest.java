@@ -1,4 +1,4 @@
-package wj.flab.group_wise.dto.product;
+package wj.flab.group_wise.dto.product.request;
 
 import jakarta.validation.constraints.NotNull;
 import java.util.List;

@@ -11,10 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.dto.CreateResponse;
-import wj.flab.group_wise.dto.product.ProductCreateRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest;
-import wj.flab.group_wise.dto.product.ProductStockAddRequest;
-import wj.flab.group_wise.dto.product.ProductStockSetRequest;
+import wj.flab.group_wise.dto.product.request.ProductCreateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockAddRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockSetRequest;
 import wj.flab.group_wise.service.ProductService;
 
 @RestController

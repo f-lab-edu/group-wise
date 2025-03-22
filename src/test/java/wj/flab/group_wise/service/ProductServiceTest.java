@@ -12,14 +12,14 @@ import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
 import wj.flab.group_wise.domain.product.ProductAttribute;
 import wj.flab.group_wise.domain.product.ProductStock;
-import wj.flab.group_wise.dto.product.ProductCreateRequest;
-import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeDeleteRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest;
-import wj.flab.group_wise.dto.product.ProductStockAddRequest;
-import wj.flab.group_wise.dto.product.ProductStockAddRequest.StockAddRequest;
-import wj.flab.group_wise.dto.product.ProductStockSetRequest;
+import wj.flab.group_wise.dto.product.request.ProductCreateRequest;
+import wj.flab.group_wise.dto.product.request.ProductCreateRequest.AttributeCreateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeDeleteRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeUpdateRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockAddRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockAddRequest.StockAddRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockSetRequest;
 import wj.flab.group_wise.repository.ProductRepository;
 
 @SpringBootTest
@@ -151,7 +151,7 @@ class ProductServiceTest {
             "seller",
             "productName",
             10000,
-            SaleStatus.SALE,
+            SaleStatus.PREPARE,
             attrsToCreate,
             attrsToUpdate,
             attrsToDelete

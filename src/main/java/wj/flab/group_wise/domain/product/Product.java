@@ -20,16 +20,16 @@ import org.hibernate.validator.constraints.Range;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
 import wj.flab.group_wise.domain.exception.TargetEntity;
-import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest;
-import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeDeleteRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueDeleteRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueUpdateRequest;
-import wj.flab.group_wise.dto.product.ProductStockAddRequest.StockAddRequest;
-import wj.flab.group_wise.dto.product.ProductStockSetRequest.StockDeleteRequest;
-import wj.flab.group_wise.dto.product.ProductStockSetRequest.StockQuantitySetRequest;
+import wj.flab.group_wise.dto.product.request.ProductCreateRequest.AttributeCreateRequest;
+import wj.flab.group_wise.dto.product.request.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeDeleteRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeUpdateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueDeleteRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueUpdateRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockAddRequest.StockAddRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockSetRequest.StockDeleteRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockSetRequest.StockQuantitySetRequest;
 import wj.flab.group_wise.util.ListUtils;
 
 @Entity
@@ -47,16 +47,16 @@ public class Product extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
+    @NotBlank @Getter
     private String seller;                      // 판매사
 
-    @NotBlank
+    @NotBlank @Getter
     private String productName;                 // 상품명
 
     @Range(min = 0) @Getter
     private int basePrice;                      // 기준가(정가)
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING) @Getter
     private SaleStatus saleStatus;              // 판매상태
 
     @OneToMany(
@@ -64,6 +64,7 @@ public class Product extends BaseTimeEntity {
         fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
+    @Getter // todo -> 추후 안전하게 변경 (entity 노출 방지)
     private List<ProductAttribute> productAttributes = new ArrayList<>();  // 상품의 선택항목
 
     @OneToMany(
@@ -71,17 +72,18 @@ public class Product extends BaseTimeEntity {
         fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
+    @Getter // todo -> 추후 안전하게 변경 (entity 노출 방지)
     private List<ProductStock> productStocks = new ArrayList<>();           // 상품의 선택항목 조합에 따른 재고
 
-    public static Product createProduct(String seller, String productName, int basePrice, SaleStatus saleStatus) {
-        return new Product(seller, productName, basePrice, saleStatus);
+    public static Product createProduct(String seller, String productName, int basePrice) {
+        return new Product(seller, productName, basePrice);
     }
 
-    private Product(String seller, String productName, int basePrice, SaleStatus saleStatus) {
+    private Product(String seller, String productName, int basePrice) {
         this.seller = seller;
         this.productName = productName;
         this.basePrice = basePrice;
-        changeSaleStatus(saleStatus);
+        this.saleStatus = SaleStatus.PREPARE;
     }
 
     public void updateProductBasicInfo(String seller, String productName, int basePrice, SaleStatus saleStatus) {
@@ -95,15 +97,11 @@ public class Product extends BaseTimeEntity {
 
         if (saleStatus == SaleStatus.SALE) {
 
-            if (productStocks.isEmpty()) {
-                throw new IllegalStateException("상품 재고가 존재하지 않습니다.");
-            }
-
             this.productStocks.stream().filter(
                     stock -> !stock.hasStockQuantitySet())
                 .findFirst()
                 .ifPresent(stock -> {
-                    throw new IllegalStateException("재고수량이 설정되지 않은 상품이 존재합니다.");});
+                    throw new IllegalStateException("재고수량이 설정되지 않은 상품은 판매상태를 판매중으로 설정할 수 없습니다.");});
         }
 
         this.saleStatus = saleStatus;

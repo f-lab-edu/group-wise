@@ -1,4 +1,4 @@
-package wj.flab.group_wise.dto.product;
+package wj.flab.group_wise.dto.product.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,6 +11,7 @@ public record ProductViewResponse (
     int basePrice,
     SaleStatus saleStatus,
     List<ProductAttributeViewResponse> productAttributes,
+    List<ProductStockResponse> productStocks,
     LocalDateTime createdDate,
     LocalDateTime modifiedDate
 ){

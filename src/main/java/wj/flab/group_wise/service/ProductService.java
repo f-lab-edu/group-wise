@@ -7,11 +7,11 @@ import org.springframework.transaction.annotation.Transactional;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
 import wj.flab.group_wise.domain.exception.TargetEntity;
 import wj.flab.group_wise.domain.product.Product;
-import wj.flab.group_wise.dto.product.ProductStockAddRequest;
-import wj.flab.group_wise.dto.product.ProductStockAddRequest.StockAddRequest;
-import wj.flab.group_wise.dto.product.ProductStockSetRequest;
-import wj.flab.group_wise.dto.product.ProductCreateRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockAddRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockAddRequest.StockAddRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockSetRequest;
+import wj.flab.group_wise.dto.product.request.ProductCreateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest;
 import wj.flab.group_wise.repository.ProductRepository;
 
 @Service
@@ -65,6 +65,12 @@ public class ProductService {
             productToUpdate.saleStatus());
 
         product.restructureAttributes(productToUpdate);
+    }
+
+    public void updateProductSaleStatus(Long productId, Product.SaleStatus saleStatus) {
+        Product product = findProduct(productId);
+        productValidator.validateProductLifeCycleBeforeChangeSaleStatus(product);
+        product.changeSaleStatus(saleStatus);
     }
 
     @Transactional(readOnly = true)

@@ -22,9 +22,9 @@ import wj.flab.group_wise.domain.BaseTimeEntity;
 import wj.flab.group_wise.domain.exception.AlreadyExistsException;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
 import wj.flab.group_wise.domain.exception.TargetEntity;
-import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueDeleteRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueUpdateRequest;
+import wj.flab.group_wise.dto.product.request.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueDeleteRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueUpdateRequest;
 import wj.flab.group_wise.util.ListUtils.ContainerOfValues;
 
 @Entity
