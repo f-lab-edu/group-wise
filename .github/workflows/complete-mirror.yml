@@ -1,0 +1,305 @@
+name: Complete Repository Mirror
+
+on:
+  # 모든 이벤트에 반응하도록 설정
+  push:
+  pull_request:
+    types: [opened, closed, edited, reopened, synchronize, review_requested]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+  pull_request_review_comment:
+    types: [created, edited, deleted]
+  issues:
+    types: [opened, edited, deleted, closed, reopened, labeled, unlabeled, assigned, unassigned]
+  issue_comment:
+    types: [created, edited, deleted]
+  create:  # 브랜치 또는 태그 생성
+  delete:  # 브랜치 또는 태그 삭제
+  # 정기적으로 실행하여 놓친 변경사항 동기화
+  schedule:
+    - cron: '0 */2 * * *'  # 2시간마다 실행
+
+jobs:
+  mirror-repository:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # 전체 히스토리 가져오기
+
+      # 모든 참조(refs) 가져오기
+      - name: Fetch all refs
+        run: |
+          git fetch --prune --unshallow
+          git fetch --all
+          git fetch --tags
+      
+      # 저장소 미러링
+      - name: Push to personal repository
+        uses: pixta-dev/repository-mirroring-action@v1
+        with:
+          target_repo_url:
+            https://github.com/woojung840511/group-wise.git
+          ssh_private_key:
+            ${{ secrets.MIRROR_SSH_PRIVATE_KEY }}
+          sync_tags: true
+  
+  mirror-issues-and-prs:
+    runs-on: ubuntu-latest
+    # 특정 이벤트나 스케줄된 실행에만 작동
+    if: github.event_name == 'issues' || github.event_name == 'issue_comment' || github.event_name == 'pull_request' || github.event_name == 'pull_request_review' || github.event_name == 'pull_request_review_comment' || github.event_name == 'schedule'
+    steps:
+      - name: Mirror issues, PRs and comments
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          script: |
+            // 소스 저장소 정보
+            const sourceOwner = context.repo.owner;
+            const sourceRepo = context.repo.repo;
+            // 대상 저장소 정보
+            const targetOwner = 'woojung840511';  // 개인 GitHub 계정명
+            const targetRepo = 'group-wise';  // 개인 저장소 이름
+            
+            // 이슈 미러링 함수
+            async function mirrorIssues() {
+              console.log('이슈 미러링 시작...');
+              
+              // 소스 저장소의 이슈 가져오기
+              const issues = await github.rest.issues.listForRepo({
+                owner: sourceOwner,
+                repo: sourceRepo,
+                state: 'all',
+                per_page: 100
+              });
+              
+              for (const issue of issues.data) {
+                // PR은 건너뛰기 (PR은 별도로 처리)
+                if (issue.pull_request) continue;
+                
+                try {
+                  console.log(`이슈 처리 중: #${issue.number} - ${issue.title}`);
+                  
+                  // 이슈 본문에 원본 링크 추가
+                  const body = `*이 이슈는 [원본 저장소](${issue.html_url})에서 자동으로 미러링되었습니다.*\n\n${issue.body || ''}`;
+                  
+                  // 대상 저장소에서 이슈 검색 (이미 있는지 확인)
+                  const targetIssues = await github.rest.search.issuesAndPullRequests({
+                    q: `repo:${targetOwner}/${targetRepo} in:title "${issue.title.replace(/"/g, '\\"')}" is:issue`
+                  });
+                  
+                  let targetIssueNumber;
+                  
+                  if (targetIssues.data.items.length > 0) {
+                    // 이미 있는 이슈 업데이트
+                    targetIssueNumber = targetIssues.data.items[0].number;
+                    await github.rest.issues.update({
+                      owner: targetOwner,
+                      repo: targetRepo,
+                      issue_number: targetIssueNumber,
+                      title: issue.title,
+                      body: body,
+                      state: issue.state
+                    });
+                  } else {
+                    // 새 이슈 생성
+                    const newIssue = await github.rest.issues.create({
+                      owner: targetOwner,
+                      repo: targetRepo,
+                      title: issue.title,
+                      body: body,
+                      labels: issue.labels.map(l => l.name)
+                    });
+                    targetIssueNumber = newIssue.data.number;
+                    
+                    // 이슈 상태 업데이트 (닫힌 이슈인 경우)
+                    if (issue.state === 'closed') {
+                      await github.rest.issues.update({
+                        owner: targetOwner,
+                        repo: targetRepo,
+                        issue_number: targetIssueNumber,
+                        state: 'closed'
+                      });
+                    }
+                  }
+                  
+                  // 댓글 미러링
+                  await mirrorComments('issues', issue.number, targetIssueNumber);
+                  
+                } catch (error) {
+                  console.error(`이슈 #${issue.number} 미러링 중 오류 발생:`, error);
+                }
+              }
+            }
+            
+            // PR 미러링 함수
+            async function mirrorPullRequests() {
+              console.log('풀 리퀘스트 미러링 시작...');
+              
+              // 소스 저장소의 PR 가져오기
+              const prs = await github.rest.pulls.list({
+                owner: sourceOwner,
+                repo: sourceRepo,
+                state: 'all',
+                per_page: 100
+              });
+              
+              for (const pr of prs.data) {
+                try {
+                  console.log(`PR 처리 중: #${pr.number} - ${pr.title}`);
+                  
+                  // PR 내용에 원본 링크 추가
+                  const body = `*이 PR은 [원본 저장소](${pr.html_url})에서 자동으로 미러링되었습니다.*\n\n${pr.body || ''}`;
+                  
+                  // 대상 저장소에서 이슈로 PR 정보 표시 (실제 PR은 만들 수 없음)
+                  const targetIssues = await github.rest.search.issuesAndPullRequests({
+                    q: `repo:${targetOwner}/${targetRepo} in:title "[PR Mirror] ${pr.title.replace(/"/g, '\\"')}" is:issue`
+                  });
+                  
+                  let targetIssueNumber;
+                  
+                  if (targetIssues.data.items.length > 0) {
+                    // 이미 있는 이슈 업데이트
+                    targetIssueNumber = targetIssues.data.items[0].number;
+                    await github.rest.issues.update({
+                      owner: targetOwner,
+                      repo: targetRepo,
+                      issue_number: targetIssueNumber,
+                      title: `[PR Mirror] ${pr.title}`,
+                      body: body,
+                      state: pr.state === 'closed' ? 'closed' : 'open'
+                    });
+                  } else {
+                    // 새 이슈 생성
+                    const newIssue = await github.rest.issues.create({
+                      owner: targetOwner,
+                      repo: targetRepo,
+                      title: `[PR Mirror] ${pr.title}`,
+                      body: body,
+                      labels: ['pr-mirror']
+                    });
+                    targetIssueNumber = newIssue.data.number;
+                    
+                    // 이슈 상태 업데이트 (닫힌 PR인 경우)
+                    if (pr.state === 'closed') {
+                      await github.rest.issues.update({
+                        owner: targetOwner,
+                        repo: targetRepo,
+                        issue_number: targetIssueNumber,
+                        state: 'closed'
+                      });
+                    }
+                  }
+                  
+                  // PR 댓글 미러링
+                  await mirrorComments('pulls', pr.number, targetIssueNumber);
+                  
+                  // PR 리뷰 미러링
+                  await mirrorPRReviews(pr.number, targetIssueNumber);
+                  
+                } catch (error) {
+                  console.error(`PR #${pr.number} 미러링 중 오류 발생:`, error);
+                }
+              }
+            }
+            
+            // 댓글 미러링 함수
+            async function mirrorComments(type, sourceNumber, targetNumber) {
+              try {
+                // 댓글 가져오기 (이슈 또는 PR)
+                const comments = await github.rest.issues.listComments({
+                  owner: sourceOwner,
+                  repo: sourceRepo,
+                  issue_number: sourceNumber
+                });
+                
+                for (const comment of comments.data) {
+                  // 댓글 내용에 원본 링크 추가
+                  const body = `*이 댓글은 [원본](${comment.html_url})에서 자동으로 미러링되었습니다.*\n\n${comment.body || ''}`;
+                  
+                  // 대상 저장소에 댓글 추가
+                  await github.rest.issues.createComment({
+                    owner: targetOwner,
+                    repo: targetRepo,
+                    issue_number: targetNumber,
+                    body: body
+                  });
+                }
+              } catch (error) {
+                console.error(`댓글 미러링 중 오류 발생:`, error);
+              }
+            }
+            
+            // PR 리뷰 미러링 함수
+            async function mirrorPRReviews(prNumber, targetIssueNumber) {
+              try {
+                // PR 리뷰 가져오기
+                const reviews = await github.rest.pulls.listReviews({
+                  owner: sourceOwner,
+                  repo: sourceRepo,
+                  pull_number: prNumber
+                });
+                
+                for (const review of reviews.data) {
+                  // 리뷰 내용 준비
+                  const reviewState = review.state.charAt(0).toUpperCase() + review.state.slice(1);  // 첫 글자 대문자화
+                  const body = `### 리뷰: ${reviewState}\n\n*이 리뷰는 [원본](${review.html_url})에서 자동으로 미러링되었습니다.*\n\n${review.body || ''}`;
+                  
+                  // 대상 저장소에 리뷰 정보를 댓글로 추가
+                  await github.rest.issues.createComment({
+                    owner: targetOwner,
+                    repo: targetRepo,
+                    issue_number: targetIssueNumber,
+                    body: body
+                  });
+                  
+                  // 리뷰 댓글 미러링
+                  await mirrorReviewComments(prNumber, review.id, targetIssueNumber);
+                }
+              } catch (error) {
+                console.error(`PR 리뷰 미러링 중 오류 발생:`, error);
+              }
+            }
+            
+            // PR 리뷰 댓글 미러링 함수
+            async function mirrorReviewComments(prNumber, reviewId, targetIssueNumber) {
+              try {
+                // 리뷰 댓글 가져오기
+                const comments = await github.rest.pulls.listCommentsForReview({
+                  owner: sourceOwner,
+                  repo: sourceRepo,
+                  pull_number: prNumber,
+                  review_id: reviewId
+                });
+                
+                for (const comment of comments.data) {
+                  // 댓글 내용 준비
+                  const body = `### 리뷰 댓글 (코드 위치: \`${comment.path}\`)\n\n*이 리뷰 댓글은 [원본](${comment.html_url})에서 자동으로 미러링되었습니다.*\n\n${comment.body || ''}`;
+                  
+                  // 대상 저장소에 리뷰 댓글 정보를 일반 댓글로 추가
+                  await github.rest.issues.createComment({
+                    owner: targetOwner,
+                    repo: targetRepo,
+                    issue_number: targetIssueNumber,
+                    body: body
+                  });
+                }
+              } catch (error) {
+                console.error(`PR 리뷰 댓글 미러링 중 오류 발생:`, error);
+              }
+            }
+            
+            // 메인 실행
+            async function main() {
+              try {
+                await mirrorIssues();
+                await mirrorPullRequests();
+                console.log('모든 미러링 작업이 완료되었습니다.');
+              } catch (error) {
+                console.error('미러링 프로세스 중 오류 발생:', error);
+              }
+            }
+            
+            // 실행
+            main();
