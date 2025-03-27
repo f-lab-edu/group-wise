@@ -34,8 +34,7 @@ public class AuthController {
         Long memberId = memberService.registerMember(memberCreateRequest);
 
         URI location = ServletUriComponentsBuilder
-            .fromCurrentRequest()
-            .path("/{id}")
+            .fromPath("/api/members/{memberId}")
             .buildAndExpand(memberId)
             .toUri();
 

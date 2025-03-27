@@ -46,7 +46,8 @@ public class MemberService {
 
         Member member = new Member(
             memberCreateRequest.username(),
-            passwordEncoder.encode(memberCreateRequest.password())
+            passwordEncoder.encode(memberCreateRequest.password()),
+            memberCreateRequest.address()
         );
 
         memberRepository.save(member);
