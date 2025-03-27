@@ -101,7 +101,7 @@ public class ProductDomainDtoCreator {
             }
         }
 
-        return new ProductStockSetRequest(productId,
+        return new ProductStockSetRequest(
             stockQuantitySetRequests,
             stockDeleteRequests
         );
