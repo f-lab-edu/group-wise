@@ -7,8 +7,7 @@ import org.hibernate.validator.constraints.Range;
 /**
  * 상품 재고 추가를 위한 DTO
  */
-public record ProductStockAddRequest(@NotNull Long productId,
-                                     List<StockAddRequest> stockAddRequests
+public record ProductStockAddRequest(List<StockAddRequest> stockAddRequests
 ) {
 
     public record StockAddRequest(@NotNull Long id,

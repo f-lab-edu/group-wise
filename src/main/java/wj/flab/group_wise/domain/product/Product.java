@@ -134,9 +134,9 @@ public class Product extends BaseTimeEntity {
         List<AttributeUpdateRequest> attrsToUpdate = productToUpdate.updateAttributes();
         List<AttributeDeleteRequest> attrsToRemove = productToUpdate.deleteAttributesIds();
 
-        createAttributes(attrsToCreate);
-        removeAttributes(attrsToRemove);
         boolean hasChangeInValue = updateAttributes(attrsToUpdate);
+        removeAttributes(attrsToRemove);
+        createAttributes(attrsToCreate);
 
         boolean requiresStockRenewal
             = hasChangeInValue || !attrsToCreate.isEmpty() || !attrsToRemove.isEmpty() ;

@@ -13,8 +13,7 @@ import wj.flab.group_wise.dto.product.request.ProductCreateRequest.AttributeCrea
 /**
  * 공동구매 진행상태가 아닌 상품의 수정을 위한 DTO
  */
-public record ProductDetailUpdateRequest(@NotNull Long productId,
-                                         @NotBlank String seller,
+public record ProductDetailUpdateRequest(@NotBlank String seller,
                                          @NotBlank String productName,
                                          @Range(min = 0) int basePrice,
                                          @Enumerated(EnumType.STRING) SaleStatus saleStatus,

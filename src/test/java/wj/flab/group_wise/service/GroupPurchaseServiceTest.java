@@ -135,14 +135,14 @@ class GroupPurchaseServiceTest {
         Long productId = productService.createProduct(productDomainDtoCreator.createProductToCreate(1, 1));
         Product product = productService.findProduct(productId);
         ProductStockSetRequest productStockSetRequest = productDomainDtoCreator.createStockToSet(productId, product.getProductStocks());
-        productService.setProductStock(productStockSetRequest);
+        productService.setProductStock(productId, productStockSetRequest);
         return productId;
     }
 
     private Long setAndGetProductStockId(Long productId) {
         Product product = productService.findProduct(productId);
         ProductStockSetRequest productStockSetRequest = productDomainDtoCreator.createStockToSet(productId, product.getProductStocks());
-        productService.setProductStock(productStockSetRequest);
+        productService.setProductStock(productId, productStockSetRequest);
 
         ProductStock stock = product.getProductStocks().get(0);
         return stock.getId();

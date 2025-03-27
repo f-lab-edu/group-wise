@@ -46,21 +46,21 @@ public class ProductService {
         return product;
     }
 
-    public void setProductStock(ProductStockSetRequest productToSetStock) {
-        Product product = findProduct(productToSetStock.productId());
+    public void setProductStock(Long productId, ProductStockSetRequest productToSetStock) {
+        Product product = findProduct(productId);
         productValidator.validateProductLifeCycleBeforeMajorUpdate(product);
         product.setProductStocks(productToSetStock.stockQuantitySetRequests());
         product.deleteProductStocks(productToSetStock.stockDeleteRequests());
     }
 
-    public void addProductStock(ProductStockAddRequest productToAddStock) {
-        Product product = findProduct(productToAddStock.productId());
+    public void addProductStock(Long productId, ProductStockAddRequest productToAddStock) {
+        Product product = findProduct(productId);
         List<StockAddRequest> stockAddRequests = productToAddStock.stockAddRequests();
         product.addProductStocks(stockAddRequests);
     }
 
-    public void updateProductDetails(ProductDetailUpdateRequest productToUpdate) {
-        Product product = findProduct(productToUpdate.productId());
+    public void updateProductDetails(Long productId, ProductDetailUpdateRequest productToUpdate) {
+        Product product = findProduct(productId);
         productValidator.validateProductLifeCycleBeforeMajorUpdate(product);
 
         product.updateProductBasicInfo(
