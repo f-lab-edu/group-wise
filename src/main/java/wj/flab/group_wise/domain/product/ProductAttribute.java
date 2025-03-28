@@ -1,5 +1,6 @@
 package wj.flab.group_wise.domain.product;
 
+import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
 import jakarta.persistence.CascadeType;
@@ -14,10 +15,10 @@ import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 import wj.flab.group_wise.domain.exception.AlreadyExistsException;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
@@ -34,6 +35,7 @@ public class ProductAttribute extends BaseTimeEntity implements ContainerOfValue
     @Id
     @Getter
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter(PRIVATE)
     private Long id;
 
     @NotBlank
@@ -54,31 +56,28 @@ public class ProductAttribute extends BaseTimeEntity implements ContainerOfValue
     private List<ProductAttributeValue> values = new ArrayList<>();    // 옵션목록
 
     @Override
+    // todo 어떻게 적절하게 보호할까
     public List<ProductAttributeValue> getValues() {
         return values;
     }
 
-    public List<ProductAttributeValue> getValuesView() {
-        return Collections.unmodifiableList(values);
-    }
-
-    public ProductAttribute(String attributeName, Product product) {
+    protected ProductAttribute(String attributeName, Product product) {
         this.attributeName = attributeName;
         this.product = product;
     }
 
-    public void updateAttributeName(@NotBlank String attrName) {
+    protected void updateAttributeName(@NotBlank String attrName) {
         this.attributeName = attrName;
     }
 
-    public void appendValues(List<AttributeValueCreateRequest> valuesToCreate) {
+    protected void appendValues(List<AttributeValueCreateRequest> valuesToCreate) {
         valuesToCreate.forEach(v -> {
             checkHasAlreadySameNameOfAttrValue(v.attributeValueName());
             values.add(new ProductAttributeValue(this, v.attributeValueName(), v.additionalPrice()));
         });
     }
 
-    public boolean updateValues(List<AttributeValueUpdateRequest> valuesToUpdate) {
+    protected boolean updateValues(List<AttributeValueUpdateRequest> valuesToUpdate) {
         boolean differenceFoundInAdditionalPrice = false;
 
         for (AttributeValueUpdateRequest valueToUpdate : valuesToUpdate) {
@@ -92,7 +91,7 @@ public class ProductAttribute extends BaseTimeEntity implements ContainerOfValue
         return differenceFoundInAdditionalPrice;
     }
 
-    public void removeValues(List<AttributeValueDeleteRequest> valuesToRemove) {
+    protected void removeValues(List<AttributeValueDeleteRequest> valuesToRemove) {
         valuesToRemove.forEach(valueToRemove -> {
             ProductAttributeValue value = getProductAttributeValue(valueToRemove.productAttributeValueId());
             values.remove(value);
@@ -115,4 +114,14 @@ public class ProductAttribute extends BaseTimeEntity implements ContainerOfValue
             throw new AlreadyExistsException(TargetEntity.PRODUCT_ATTRIBUTE, "이미 존재하는 속성값입니다. (" + attributeValueName + ")");
         }
     }
+
+    protected ProductAttribute copy() {
+        ProductAttribute copy = new ProductAttribute(attributeName, product);
+        copy.setId(id);
+        copy.setCreatedDate(this.getCreatedDate());
+        copy.setModifiedDate(this.getModifiedDate());
+        values.forEach(v -> copy.values.add(v.copy(copy)));
+        return copy;
+    }
+
 }

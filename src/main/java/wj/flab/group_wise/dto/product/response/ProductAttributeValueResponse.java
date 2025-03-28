@@ -10,4 +10,7 @@ public record ProductAttributeValueResponse(
     int additionalPrice,
     LocalDateTime createdDate,
     LocalDateTime modifiedDate
-) {}
+) {
+
+
+}

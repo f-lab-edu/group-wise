@@ -30,6 +30,7 @@ import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.Attribu
 import wj.flab.group_wise.dto.product.request.ProductStockAddRequest.StockAddRequest;
 import wj.flab.group_wise.dto.product.request.ProductStockSetRequest.StockDeleteRequest;
 import wj.flab.group_wise.dto.product.request.ProductStockSetRequest.StockQuantitySetRequest;
+import wj.flab.group_wise.dto.product.response.ProductStockResponse;
 import wj.flab.group_wise.util.ListUtils;
 
 @Entity
@@ -64,7 +65,7 @@ public class Product extends BaseTimeEntity {
         fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
-    @Getter // todo -> 추후 안전하게 변경 (entity 노출 방지)
+    @Getter(value = PROTECTED)
     private List<ProductAttribute> productAttributes = new ArrayList<>();  // 상품의 선택항목
 
     @OneToMany(
@@ -72,8 +73,14 @@ public class Product extends BaseTimeEntity {
         fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
-    @Getter // todo -> 추후 안전하게 변경 (entity 노출 방지)
+    @Getter(value = PROTECTED)
     private List<ProductStock> productStocks = new ArrayList<>();           // 상품의 선택항목 조합에 따른 재고
+
+    public List<ProductAttribute> getProductAttributesCopy() {
+        return productAttributes.stream()
+            .map(ProductAttribute::copy)
+            .toList();
+    }
 
     public static Product createProduct(String seller, String productName, int basePrice) {
         return new Product(seller, productName, basePrice);
@@ -236,5 +243,11 @@ public class Product extends BaseTimeEntity {
     public void decreaseStockQuantity(Long stockId, int quantity) {
         ProductStock targetStock = getTargetStock(stockId);
         targetStock.decreaseStockQuantity(quantity);
+    }
+
+    public List<ProductStockResponse> getProductStockResponses() {
+        return productStocks.stream()
+            .map(ProductStock::toResponse)
+            .toList();
     }
 }

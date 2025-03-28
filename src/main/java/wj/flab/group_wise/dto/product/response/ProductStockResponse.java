@@ -15,7 +15,8 @@ public record ProductStockResponse(
 ) {
 
     @QueryProjection
-    public ProductStockResponse {}
+    public ProductStockResponse {
+    }
 
     public record ProductAttributeValueResponse(
         Long productAttributeId,
@@ -24,8 +25,10 @@ public record ProductStockResponse(
         String attributeValueName,
         int additionalPrice
     ) {
+
         @QueryProjection
-        public ProductAttributeValueResponse {}
+        public ProductAttributeValueResponse {
+        }
     }
 
 }

@@ -26,11 +26,9 @@ public class ProductService {
     private final ProductValidator productValidator;
 
     public ProductViewResponse getProductInfo(Long productId) {
-        ProductViewResponse productInfo = productRepository.findProductViewById(productId);
-        if (productInfo == null) {
-            throw new EntityNotFoundException(TargetEntity.PRODUCT, productId);
-        }
-        return productInfo;
+//        ProductViewResponse productInfo = productRepository.findProductViewById(productId);
+        Product product = findProduct(productId);
+        return ProductViewResponse.from(product);
     }
 
     public Long createProduct(ProductCreateRequest productToCreate) {
