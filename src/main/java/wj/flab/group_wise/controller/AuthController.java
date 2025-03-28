@@ -1,27 +1,19 @@
 package wj.flab.group_wise.controller;
 
+import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import wj.flab.group_wise.config.JwtTokenProvider;
-import wj.flab.group_wise.domain.Member;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import wj.flab.group_wise.dto.CreateResponse;
 import wj.flab.group_wise.dto.JwtResponse;
-import wj.flab.group_wise.dto.LoginRequest;
-import wj.flab.group_wise.dto.SignupRequest;
-import wj.flab.group_wise.repository.MemberRepository;
+import wj.flab.group_wise.dto.member.MemberCreateRequest;
+import wj.flab.group_wise.dto.member.MemberLoginRequest;
+import wj.flab.group_wise.service.MemberService;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -29,52 +21,25 @@ import wj.flab.group_wise.repository.MemberRepository;
 @Slf4j
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final MemberRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final MemberService memberService;
 
     @PostMapping("/login")
-    public ResponseEntity<Object> login(@RequestBody LoginRequest loginRequest) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                    loginRequest.username(),
-                    loginRequest.password()
-                )
-            );
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String token = jwtTokenProvider.createToken(userDetails.getUsername());
-
-            return ResponseEntity.ok(new JwtResponse(token));
-        } catch (AuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
-        }
+    public ResponseEntity<JwtResponse> login(@RequestBody MemberLoginRequest memberLoginRequest) {
+        JwtResponse response = memberService.login(memberLoginRequest);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody SignupRequest signupRequest) {
-        if (userRepository.existsByUsername(signupRequest.username())) {
-            return ResponseEntity.badRequest().body("Username is already taken");
-        }
+    public ResponseEntity<CreateResponse> register(@RequestBody MemberCreateRequest memberCreateRequest) {
+        Long memberId = memberService.registerMember(memberCreateRequest);
 
-        Member member = new Member(
-            signupRequest.username(),
-            passwordEncoder.encode(signupRequest.password())
-        );
+        URI location = ServletUriComponentsBuilder
+            .fromPath("/api/members/{memberId}")
+            .buildAndExpand(memberId)
+            .toUri();
 
-        userRepository.save(member);
-
-        return ResponseEntity.ok("User registered successfully");
+        CreateResponse response = new CreateResponse(memberId);
+        return ResponseEntity.created(location).body(response);
     }
 
-    @GetMapping("/test")
-    public String test() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        log.info(authentication.getName());
-        return "test";
-    }
 }

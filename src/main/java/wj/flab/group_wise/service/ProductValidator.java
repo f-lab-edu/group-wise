@@ -28,8 +28,14 @@ public class ProductValidator {
     public void validateProductLifeCycleBeforeMajorUpdate(Product product) {
         List<GroupPurchase> ongoingGroups = groupPurchaseRepository.findGroupPurchaseByProductAndStatus(Status.ONGOING, product.getId());
         if (!ongoingGroups.isEmpty()) {
-            throw new IllegalStateException("진행 중인 공동구매 상품은 재고 증가만 가능합니다.");
+            throw new IllegalStateException("공동구매가 진행 중인 상품은 재고 증가만 가능합니다.");
         }
     }
 
+    public void validateProductLifeCycleBeforeChangeSaleStatus(Product product) {
+        List<GroupPurchase> ongoingGroups = groupPurchaseRepository.findGroupPurchaseByProductAndStatus(Status.ONGOING, product.getId());
+        if (!ongoingGroups.isEmpty()) {
+            throw new IllegalStateException("공동구매가 진행 중인 상품은 판매상태를 변경할 수 없습니다.");
+        }
+    }
 }
