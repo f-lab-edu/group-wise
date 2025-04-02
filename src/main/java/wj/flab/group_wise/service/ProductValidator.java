@@ -32,6 +32,7 @@ public class ProductValidator {
         }
     }
 
+    // todo 삭제
     public void validateProductLifeCycleBeforeChangeSaleStatus(Product product) {
         List<GroupPurchase> ongoingGroups = groupPurchaseRepository.findGroupPurchaseByProductAndStatus(Status.ONGOING, product.getId());
         if (!ongoingGroups.isEmpty()) {

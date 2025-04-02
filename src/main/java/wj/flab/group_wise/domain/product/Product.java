@@ -93,11 +93,14 @@ public class Product extends BaseTimeEntity {
         this.saleStatus = SaleStatus.PREPARE;
     }
 
-    public void updateProductBasicInfo(String seller, String productName, int basePrice, SaleStatus saleStatus) {
-        this.seller = seller;
-        this.productName = productName;
-        this.basePrice = basePrice;
-        changeSaleStatus(saleStatus);
+    public void updateProductBasicInfo(String seller, String productName, Integer basePrice, SaleStatus saleStatus) {
+        if (seller != null && !seller.isBlank()) this.seller = seller;
+        if (productName != null && !productName.isBlank()) this.productName = productName;
+        if (basePrice != null) {
+            if (basePrice < 0) throw new IllegalArgumentException("상품의 기준가는 0보다 작을 수 없습니다.");
+            this.basePrice = basePrice;
+        }
+        if (saleStatus != null) changeSaleStatus(saleStatus);
     }
 
     public void changeSaleStatus(SaleStatus saleStatus) {
@@ -141,12 +144,15 @@ public class Product extends BaseTimeEntity {
         List<AttributeUpdateRequest> attrsToUpdate = productToUpdate.updateAttributes();
         List<AttributeDeleteRequest> attrsToRemove = productToUpdate.deleteAttributesIds();
 
-        boolean hasChangeInValue = updateAttributes(attrsToUpdate);
-        removeAttributes(attrsToRemove);
-        createAttributes(attrsToCreate);
+        boolean hasChangeInAttrValue = attrsToUpdate != null && !attrsToUpdate.isEmpty() && updateAttributes(attrsToUpdate);
+        boolean hasAttrToRemove = attrsToRemove != null && !attrsToRemove.isEmpty();
+        boolean hasAttrToCreate = attrsToCreate != null && !attrsToCreate.isEmpty();
+
+        if (hasAttrToRemove) removeAttributes(attrsToRemove);
+        if (hasAttrToCreate) createAttributes(attrsToCreate);
 
         boolean requiresStockRenewal
-            = hasChangeInValue || !attrsToCreate.isEmpty() || !attrsToRemove.isEmpty() ;
+            = hasChangeInAttrValue || hasAttrToRemove || hasAttrToCreate ;
 
         if (requiresStockRenewal) {
             renewProductStocks();

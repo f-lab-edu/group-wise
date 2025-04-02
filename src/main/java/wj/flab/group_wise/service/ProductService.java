@@ -68,13 +68,6 @@ public class ProductService {
             productToUpdate.saleStatus());
 
         product.restructureAttributes(productToUpdate);
-        log.info(product.toString());
-    }
-
-    public void updateProductSaleStatus(Long productId, Product.SaleStatus saleStatus) {
-        Product product = findProduct(productId);
-        productValidator.validateProductLifeCycleBeforeChangeSaleStatus(product);
-        product.changeSaleStatus(saleStatus);
     }
 
     @Transactional(readOnly = true)

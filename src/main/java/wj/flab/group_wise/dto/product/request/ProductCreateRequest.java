@@ -3,6 +3,7 @@ package wj.flab.group_wise.dto.product.request;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import org.hibernate.validator.constraints.Range;
 import wj.flab.group_wise.domain.product.Product;
@@ -27,7 +28,7 @@ public record ProductCreateRequest(@NotBlank String seller,
      */
 
     public record AttributeCreateRequest(@NotBlank String attributeName,
-                                         List<AttributeValueCreateRequest> attributeValues) {
+                                         @NotNull List<AttributeValueCreateRequest> attributeValues) {
 
         /**
          * @param attributeValueName  상품의 선택항목 값 (ex. 빨강, M 등)
