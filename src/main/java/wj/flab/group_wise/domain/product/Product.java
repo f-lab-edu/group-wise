@@ -175,11 +175,14 @@ public class Product extends BaseTimeEntity {
             List<AttributeValueUpdateRequest> updateValues = attr.updateAttributeValues();
             List<AttributeValueDeleteRequest> deleteValues = attr.deleteAttributeValuesIds();
 
-            targetAttr.appendValues(newValues);
-            targetAttr.removeValues(deleteValues);
             boolean differenceFoundInAdditionalPrice = targetAttr.updateValues(updateValues);
+            boolean hasValueToAppend = newValues != null && !newValues.isEmpty();
+            boolean hasValueToDelete = deleteValues != null && !deleteValues.isEmpty();
 
-            hasChangeInValue = differenceFoundInAdditionalPrice || !newValues.isEmpty() || !deleteValues.isEmpty();
+            if (hasValueToAppend) targetAttr.appendValues(newValues);
+            if (hasValueToDelete) targetAttr.removeValues(deleteValues);
+
+            hasChangeInValue = differenceFoundInAdditionalPrice || hasValueToAppend || hasValueToDelete;
         }
         return hasChangeInValue;
     }
