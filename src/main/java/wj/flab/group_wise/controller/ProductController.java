@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.dto.CreateResponse;
 import wj.flab.group_wise.dto.product.request.ProductCreateRequest;
 import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest;
@@ -79,8 +78,6 @@ public class ProductController {
 
     @DeleteMapping("{productId}")
     public ResponseEntity<Void> deleteProduct(@PathVariable("productId") Long productId) {
-        Product product = productService.findProduct(productId);
-        productValidator.validateProductLifeCycleBeforeMajorUpdate(product);
         productService.deleteProduct(productId);
         return ResponseEntity.ok().build();
     }
