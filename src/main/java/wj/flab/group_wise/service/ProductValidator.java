@@ -32,11 +32,4 @@ public class ProductValidator {
         }
     }
 
-    // todo 삭제
-    public void validateProductLifeCycleBeforeChangeSaleStatus(Product product) {
-        List<GroupPurchase> ongoingGroups = groupPurchaseRepository.findGroupPurchaseByProductAndStatus(Status.ONGOING, product.getId());
-        if (!ongoingGroups.isEmpty()) {
-            throw new IllegalStateException("공동구매가 진행 중인 상품은 판매상태를 변경할 수 없습니다.");
-        }
-    }
 }

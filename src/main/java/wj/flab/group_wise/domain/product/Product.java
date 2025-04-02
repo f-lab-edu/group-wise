@@ -30,11 +30,11 @@ import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.Attribu
 import wj.flab.group_wise.dto.product.request.ProductStockAddRequest.StockAddRequest;
 import wj.flab.group_wise.dto.product.request.ProductStockSetRequest.StockDeleteRequest;
 import wj.flab.group_wise.dto.product.request.ProductStockSetRequest.StockQuantitySetRequest;
-import wj.flab.group_wise.dto.product.response.ProductStockResponse;
 import wj.flab.group_wise.util.ListUtils;
 
 @Entity
 @NoArgsConstructor(access = PROTECTED)
+@Getter(/*PROTECTED*/)
 public class Product extends BaseTimeEntity {
 
     public enum SaleStatus {
@@ -44,20 +44,20 @@ public class Product extends BaseTimeEntity {
         DISCONTINUE // 단종
     }
 
-    @Id @Getter
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank @Getter
+    @NotBlank
     private String seller;                      // 판매사
 
-    @NotBlank @Getter
+    @NotBlank
     private String productName;                 // 상품명
 
-    @Range(min = 0) @Getter
+    @Range(min = 0)
     private int basePrice;                      // 기준가(정가)
 
-    @Enumerated(EnumType.STRING) @Getter
+    @Enumerated(EnumType.STRING)
     private SaleStatus saleStatus;              // 판매상태
 
     @OneToMany(
@@ -65,7 +65,6 @@ public class Product extends BaseTimeEntity {
         fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
-    @Getter(value = PROTECTED)
     private List<ProductAttribute> productAttributes = new ArrayList<>();  // 상품의 선택항목
 
     @OneToMany(
@@ -73,14 +72,8 @@ public class Product extends BaseTimeEntity {
         fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
-    @Getter(value = PROTECTED)
     private List<ProductStock> productStocks = new ArrayList<>();           // 상품의 선택항목 조합에 따른 재고
 
-    public List<ProductAttribute> getProductAttributesCopy() {
-        return productAttributes.stream()
-            .map(ProductAttribute::copy)
-            .toList();
-    }
 
     public static Product createProduct(String seller, String productName, int basePrice) {
         return new Product(seller, productName, basePrice);
@@ -254,9 +247,4 @@ public class Product extends BaseTimeEntity {
         targetStock.decreaseStockQuantity(quantity);
     }
 
-    public List<ProductStockResponse> getProductStockResponses() {
-        return productStocks.stream()
-            .map(ProductStock::toResponse)
-            .toList();
-    }
 }

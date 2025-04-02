@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record ProductStockResponse(
-    Long productId,
     Long stockId,
     int stockQuantity,
     int price,

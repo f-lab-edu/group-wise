@@ -16,6 +16,7 @@ import wj.flab.group_wise.domain.BaseTimeEntity;
 
 @Entity
 @NoArgsConstructor(access = PROTECTED)
+@Getter(/*PROTECTED*/)
 public class ProductAttributeValueStock extends BaseTimeEntity {
 
     @Id
@@ -25,7 +26,7 @@ public class ProductAttributeValueStock extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_attribute_value_id")
     @NotNull
-    @Getter(value = PROTECTED)
+
     private ProductAttributeValue productAttributeValue;
 
     @ManyToOne(fetch = FetchType.LAZY)

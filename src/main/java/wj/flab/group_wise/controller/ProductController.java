@@ -17,7 +17,6 @@ import wj.flab.group_wise.dto.product.request.ProductStockAddRequest;
 import wj.flab.group_wise.dto.product.request.ProductStockSetRequest;
 import wj.flab.group_wise.dto.product.response.ProductViewResponse;
 import wj.flab.group_wise.service.ProductService;
-import wj.flab.group_wise.service.ProductValidator;
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -25,7 +24,6 @@ import wj.flab.group_wise.service.ProductValidator;
 public class ProductController {
 
     private final ProductService productService;
-    private final ProductValidator productValidator;
 
     @GetMapping("{productId}")
     public ResponseEntity<ProductViewResponse> getProductInfo(@PathVariable("productId") long productId) {

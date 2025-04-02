@@ -53,7 +53,7 @@ class GroupPurchaseServiceTest {
     }
 
     private Long setAndGetGroupPurchaseId(Long productId, String title) {
-        productService.updateProductSaleStatus(productId, SaleStatus.SALE);
+        productService.updateProductDetails(productId, productDomainDtoCreator.createUpdateProductSaleStatusRequest(SaleStatus.SALE));
         Long groupPurchaseId = groupPurchaseService.createGroupPurchase(getGroupPurchaseCreateRequest(productId, title));
         return groupPurchaseId;
     }
@@ -154,7 +154,7 @@ class GroupPurchaseServiceTest {
     }
 
     private Long setAndGetGroupPurchaseId(Long productId) {
-        productService.updateProductSaleStatus(productId, SaleStatus.SALE);
+        productService.updateProductDetails(productId, productDomainDtoCreator.createUpdateProductSaleStatusRequest(SaleStatus.SALE));
         Long groupPurchaseId = groupPurchaseService.createGroupPurchase(getGroupPurchaseCreateRequest(productId, "공동구매"));
         groupPurchaseService.startGroupPurchase(new GroupPurchaseStartRequest(groupPurchaseId));
         return groupPurchaseId;

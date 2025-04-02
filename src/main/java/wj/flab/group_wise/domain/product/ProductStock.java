@@ -18,11 +18,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import wj.flab.group_wise.domain.BaseTimeEntity;
-import wj.flab.group_wise.dto.product.response.ProductStockResponse;
-import wj.flab.group_wise.dto.product.response.ProductStockResponse.ProductAttributeValueResponse;
+
 
 @Entity
-@Getter
+@Getter(/*PROTECTED*/)
 @NoArgsConstructor(access = PROTECTED)
 public class ProductStock extends BaseTimeEntity implements Purchasable {
 
@@ -36,7 +35,6 @@ public class ProductStock extends BaseTimeEntity implements Purchasable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     @NotNull
-    @Getter(PROTECTED)
     private Product product;
 
     @OneToMany(
@@ -44,7 +42,6 @@ public class ProductStock extends BaseTimeEntity implements Purchasable {
         fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
         orphanRemoval = true)
-    @Getter(PROTECTED)
     private List<ProductAttributeValueStock> values = new ArrayList<>(); // 상품 선택 항목에 대해 선택된 값
 
     protected ProductStock(Product product) {
@@ -93,30 +90,5 @@ public class ProductStock extends BaseTimeEntity implements Purchasable {
             throw new IllegalArgumentException("재고 수량은 0 이상이어야 합니다.");
         }
         this.stockQuantity = quantity;
-    }
-
-    protected ProductStockResponse toResponse() {
-        return new ProductStockResponse(
-            product.getId(),
-            id,
-            getStockQuantity(),
-            getPrice(),
-            getAttributeValuesDto(),
-            getCreatedDate(),
-            getModifiedDate()
-        );
-    }
-
-    private List<ProductAttributeValueResponse> getAttributeValuesDto() {
-        return this.values.stream()
-            .map(ProductAttributeValueStock::getProductAttributeValue)
-            .map(value -> new ProductAttributeValueResponse(
-                value.getProductAttribute().getId(),
-                value.getProductAttribute().getAttributeName(),
-                value.getId(),
-                value.getAttributeValueName(),
-                value.getAdditionalPrice()
-            ))
-            .toList();
     }
 }

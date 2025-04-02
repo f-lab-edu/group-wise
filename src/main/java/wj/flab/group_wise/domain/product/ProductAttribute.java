@@ -30,6 +30,7 @@ import wj.flab.group_wise.util.ListUtils.ContainerOfValues;
 
 @Entity
 @NoArgsConstructor(access = PROTECTED)
+@Getter(/*PROTECTED*/)
 public class ProductAttribute extends BaseTimeEntity implements ContainerOfValues<ProductAttributeValue> {
 
     @Id
@@ -39,8 +40,6 @@ public class ProductAttribute extends BaseTimeEntity implements ContainerOfValue
     private Long id;
 
     @NotBlank
-//    @Setter
-    @Getter
     private String attributeName;                // 상품의 선택항목명 (ex. 색상, 사이즈 등)
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -113,15 +112,6 @@ public class ProductAttribute extends BaseTimeEntity implements ContainerOfValue
         if (hasSameAttributeValue) {
             throw new AlreadyExistsException(TargetEntity.PRODUCT_ATTRIBUTE, "이미 존재하는 속성값입니다. (" + attributeValueName + ")");
         }
-    }
-
-    protected ProductAttribute copy() {
-        ProductAttribute copy = new ProductAttribute(attributeName, product);
-        copy.setId(id);
-        copy.setCreatedDate(this.getCreatedDate());
-        copy.setModifiedDate(this.getModifiedDate());
-        values.forEach(v -> copy.values.add(v.copy(copy)));
-        return copy;
     }
 
 }

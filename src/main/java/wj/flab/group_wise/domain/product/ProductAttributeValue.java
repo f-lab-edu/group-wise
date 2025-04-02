@@ -19,7 +19,7 @@ import org.hibernate.validator.constraints.Range;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 
 @Entity
-@Getter
+@Getter(/*PROTECTED*/)
 @NoArgsConstructor(access = PROTECTED)
 @EqualsAndHashCode(of = {"id"}, callSuper = false)
 public class ProductAttributeValue extends BaseTimeEntity {
@@ -36,8 +36,6 @@ public class ProductAttributeValue extends BaseTimeEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_attribute_id", nullable = false)
-//    @NotNull
-    @Getter(PROTECTED)
     private ProductAttribute productAttribute;      // 상품의 선택항목명 엔티티 (ex. 색상, 사이즈 등)
 
     @NotBlank
@@ -53,14 +51,6 @@ public class ProductAttributeValue extends BaseTimeEntity {
     protected void update(String attributeValue, int additionalPrice) {
         this.attributeValueName = attributeValue;
         this.additionalPrice = additionalPrice;
-    }
-
-    public ProductAttributeValue copy(ProductAttribute copiedParent) {
-        ProductAttributeValue copy = new ProductAttributeValue(copiedParent, attributeValueName, additionalPrice);
-        copy.setId(id);
-        copy.setCreatedDate(this.getCreatedDate());
-        copy.setModifiedDate(this.getModifiedDate());
-        return copy;
     }
 
 }

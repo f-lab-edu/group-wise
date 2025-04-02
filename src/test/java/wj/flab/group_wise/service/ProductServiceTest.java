@@ -12,6 +12,7 @@ import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
 import wj.flab.group_wise.domain.product.ProductAttribute;
 import wj.flab.group_wise.domain.product.ProductStock;
+import wj.flab.group_wise.domain.product.ProductViewResponseMapper;
 import wj.flab.group_wise.dto.product.request.ProductCreateRequest;
 import wj.flab.group_wise.dto.product.request.ProductCreateRequest.AttributeCreateRequest;
 import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest;
@@ -20,6 +21,7 @@ import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.Attribu
 import wj.flab.group_wise.dto.product.request.ProductStockAddRequest;
 import wj.flab.group_wise.dto.product.request.ProductStockAddRequest.StockAddRequest;
 import wj.flab.group_wise.dto.product.request.ProductStockSetRequest;
+import wj.flab.group_wise.dto.product.response.ProductViewResponse;
 import wj.flab.group_wise.repository.ProductRepository;
 
 @SpringBootTest
@@ -35,6 +37,9 @@ class ProductServiceTest {
 
     @Autowired
     private ProductDomainDtoCreator productDomainDtoCreator;
+
+    @Autowired
+    private ProductViewResponseMapper productResponseMapper;
 
 
     @Test
@@ -71,7 +76,8 @@ class ProductServiceTest {
         long productSize = products.size();
         Assertions.assertThat(productSize).isEqualTo(1);
 
-        int stockSize = products.get(0).getProductStocks().size();
+        ProductViewResponse productViewResponse = productResponseMapper.mapAttributeValues(products.get(0));
+        int stockSize = productViewResponse.productStocks().size();
         Assertions.assertThat(stockSize).isEqualTo((int) Math.pow(valuePerAttrCount, attrCount));
     }
 

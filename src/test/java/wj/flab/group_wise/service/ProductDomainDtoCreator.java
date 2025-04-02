@@ -11,6 +11,7 @@ import wj.flab.group_wise.domain.product.ProductStock;
 import wj.flab.group_wise.dto.product.request.ProductCreateRequest;
 import wj.flab.group_wise.dto.product.request.ProductCreateRequest.AttributeCreateRequest;
 import wj.flab.group_wise.dto.product.request.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest;
 import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeDeleteRequest;
 import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeUpdateRequest;
 import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueDeleteRequest;
@@ -115,4 +116,15 @@ public class ProductDomainDtoCreator {
         return stockAddRequests;
     }
 
+    public ProductDetailUpdateRequest createUpdateProductSaleStatusRequest(SaleStatus saleStatus) {
+        return new ProductDetailUpdateRequest(
+            null,
+            null,
+            null,
+            saleStatus,
+            null,
+            null,
+            null
+        );
+    }
 }

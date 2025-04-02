@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
 import wj.flab.group_wise.domain.exception.TargetEntity;
 import wj.flab.group_wise.domain.product.Product;
+import wj.flab.group_wise.domain.product.ProductViewResponseMapper;
 import wj.flab.group_wise.dto.product.request.ProductCreateRequest;
 import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest;
 import wj.flab.group_wise.dto.product.request.ProductStockAddRequest;
@@ -24,11 +25,11 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ProductValidator productValidator;
+    private final ProductViewResponseMapper productViewResponseMapper;
 
     public ProductViewResponse getProductInfo(Long productId) {
-//        ProductViewResponse productInfo = productRepository.findProductViewById(productId);
         Product product = findProduct(productId);
-        return ProductViewResponse.from(product);
+        return productViewResponseMapper.mapAttributeValues(product);
     }
 
     public Long createProduct(ProductCreateRequest productToCreate) {
