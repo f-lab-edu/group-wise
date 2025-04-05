@@ -81,13 +81,13 @@ public class GroupPurchase extends BaseTimeEntity { // 공동구매 그룹
         if (status != Status.PENDING) {
             throw new IllegalStateException("진행 중인 공동구매는 수정할 수 없습니다.");
         }
-        this.title = title;
-        this.productId = productId;
-        this.discountRate = discountRate;
-        this.initialPrice = initialPrice;
-        this.minimumParticipants = minimumParticipants;
-        this.startDate = startDate;
-        this.endDate = endDate;
+        if (title != null && !title.isEmpty())  this.title = title;
+        if (productId != null)                  this.productId = productId;
+        if (discountRate != null)               this.discountRate = discountRate;
+        if (initialPrice != null)               this.initialPrice = initialPrice;
+        if (minimumParticipants != null)        this.minimumParticipants = minimumParticipants;
+        if (startDate != null)                  this.startDate = startDate;
+        if (endDate != null)                    this.endDate = endDate;
     }
 
     public void start() {

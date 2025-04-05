@@ -11,11 +11,8 @@ import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase.Status;
 import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCancelRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCreateRequest;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseDeleteRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseJoinRequest;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseStartRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseUpdateRequest;
 import wj.flab.group_wise.repository.GroupPurchaseRepository;
 
@@ -46,8 +43,8 @@ public class GroupPurchaseService {
         return groupPurchase.getId();
     }
 
-    public void updateGroupPurchase(GroupPurchaseUpdateRequest groupUpdateRequest) {
-        GroupPurchase groupPurchase = findGroupPurchase(groupUpdateRequest.groupPurchaseId());
+    public void updateGroupPurchase(Long groupPurchaseId, GroupPurchaseUpdateRequest groupUpdateRequest) {
+        GroupPurchase groupPurchase = findGroupPurchase(groupPurchaseId);
 
         groupPurchase.updateGroupPurchaseInfo(
             groupUpdateRequest.title(),
@@ -66,29 +63,29 @@ public class GroupPurchaseService {
             .orElseThrow(() -> new EntityNotFoundException(TargetEntity.GROUP_PURCHASE, groupPurchaseId));
     }
 
-    public void deleteGroupPurchase(GroupPurchaseDeleteRequest groupDeleteRequest) {
-        GroupPurchase groupPurchase = findGroupPurchase(groupDeleteRequest.groupPurchaseId());
+    public void deleteGroupPurchase(Long groupPurchaseId) {
+        GroupPurchase groupPurchase = findGroupPurchase(groupPurchaseId);
         if (!groupPurchase.isModifiable()) {
             throw new IllegalStateException("진행이 시작된 공동구매는 삭제할 수 없습니다.");
         }
         groupPurchaseRepository.delete(groupPurchase);
     }
 
-    public void startGroupPurchase(GroupPurchaseStartRequest groupStartRequest) {
-        GroupPurchase groupPurchase = findGroupPurchase(groupStartRequest.groupPurchaseId());
+    public void startGroupPurchase(Long groupPurchaseId) {
+        GroupPurchase groupPurchase = findGroupPurchase(groupPurchaseId);
         groupPurchase.start();
     }
 
-    public void cancelGroupPurchase(GroupPurchaseCancelRequest groupCancelRequest) {
-        GroupPurchase groupPurchase = findGroupPurchase(groupCancelRequest.groupPurchaseId());
+    public void cancelGroupPurchase(Long groupPurchaseId) {
+        GroupPurchase groupPurchase = findGroupPurchase(groupPurchaseId);
         groupPurchase.cancel();
 
         // todo 추후 참여자에게 알림 기능 구현하기
     }
 
-    public void joinGroupPurchase(GroupPurchaseJoinRequest groupJoinRequest) {
+    public void joinGroupPurchase(Long groupPurchaseId, GroupPurchaseJoinRequest groupJoinRequest) {
 
-        GroupPurchase groupPurchase = findGroupPurchase(groupJoinRequest.groupPurchaseId());
+        GroupPurchase groupPurchase = findGroupPurchase(groupPurchaseId);
         Member member = memberService.findMember(groupJoinRequest.memberId());
         Product product = productService.findProduct(groupJoinRequest.productId());
         Long stockId = groupJoinRequest.productStockId();

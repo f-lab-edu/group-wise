@@ -11,11 +11,8 @@ import wj.flab.group_wise.domain.exception.EntityNotFoundException;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
 import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.ProductStock;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCancelRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCreateRequest;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseDeleteRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseJoinRequest;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseStartRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseUpdateRequest;
 import wj.flab.group_wise.dto.member.MemberCreateRequest;
 import wj.flab.group_wise.dto.product.ProductStockSetRequest;
@@ -60,7 +57,7 @@ class GroupPurchaseServiceTest {
         Long groupPurchaseId = setAndGetGroupPurchaseId(productId, "공동구매 1");
 
         // when : 공동구매 수정
-        groupPurchaseService.updateGroupPurchase(getGroupUpdateRequest(groupPurchaseId, productId, "공동구매 2"));
+        groupPurchaseService.updateGroupPurchase(groupPurchaseId, getGroupUpdateRequest(productId, "공동구매 2"));
 
         // then : 공동구매 수정 확인
         GroupPurchase groupPurchase = groupPurchaseService.findGroupPurchase(groupPurchaseId);
@@ -74,7 +71,7 @@ class GroupPurchaseServiceTest {
         Long groupPurchaseId = setAndGetGroupPurchaseId(productId, "공동구매");
 
         // when : 공동구매 삭제
-        groupPurchaseService.deleteGroupPurchase(new GroupPurchaseDeleteRequest(groupPurchaseId));
+        groupPurchaseService.deleteGroupPurchase(groupPurchaseId);
 
         // then : 공동구매 삭제 확인
         Assertions.assertThatThrownBy(() -> groupPurchaseService.findGroupPurchase(groupPurchaseId))
@@ -88,7 +85,7 @@ class GroupPurchaseServiceTest {
         Long groupPurchaseId = setAndGetGroupPurchaseId(productId, "공동구매");
 
         // when : 공동구매 시작
-        groupPurchaseService.startGroupPurchase(new GroupPurchaseStartRequest(groupPurchaseId));
+        groupPurchaseService.startGroupPurchase(groupPurchaseId);
 
         // then : 공동구매 시작 확인
         GroupPurchase groupPurchase = groupPurchaseService.findGroupPurchase(groupPurchaseId);
@@ -102,7 +99,7 @@ class GroupPurchaseServiceTest {
         Long groupPurchaseId = setAndGetStartedGroupPurchaseId(productId);
 
         // when : 공동구매 취소
-        groupPurchaseService.cancelGroupPurchase(new GroupPurchaseCancelRequest(groupPurchaseId));
+        groupPurchaseService.cancelGroupPurchase(groupPurchaseId);
 
         // then : 공동구매 취소 확인
         GroupPurchase groupPurchase = groupPurchaseService.findGroupPurchase(groupPurchaseId);
@@ -118,8 +115,8 @@ class GroupPurchaseServiceTest {
         Long memberId = setAndGetMemberId();
 
         // when : 공동구매 참여
-        groupPurchaseService.joinGroupPurchase(
-            new GroupPurchaseJoinRequest(groupPurchaseId, memberId, productId, stockId, 1));
+        groupPurchaseService.joinGroupPurchase(groupPurchaseId,
+            new GroupPurchaseJoinRequest(memberId, productId, stockId, 1));
 
         // then : 공동구매 참여 확인
         GroupPurchase groupPurchase = groupPurchaseService.findGroupPurchase(groupPurchaseId);
@@ -146,7 +143,7 @@ class GroupPurchaseServiceTest {
 
     private Long setAndGetStartedGroupPurchaseId(Long productId) {
         Long groupPurchaseId = groupPurchaseService.createGroupPurchase(getGroupPurchaseCreateRequest(productId, "공동구매"));
-        groupPurchaseService.startGroupPurchase(new GroupPurchaseStartRequest(groupPurchaseId));
+        groupPurchaseService.startGroupPurchase(groupPurchaseId);
         return groupPurchaseId;
     }
 
@@ -162,9 +159,8 @@ class GroupPurchaseServiceTest {
         );
     }
 
-    private static GroupPurchaseUpdateRequest getGroupUpdateRequest(Long groupPurchaseId, Long productId, String title) {
+    private static GroupPurchaseUpdateRequest getGroupUpdateRequest(Long productId, String title) {
         return new GroupPurchaseUpdateRequest(
-            groupPurchaseId,
             title,
             productId,
             20,
