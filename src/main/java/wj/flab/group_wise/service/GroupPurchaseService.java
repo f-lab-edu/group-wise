@@ -4,7 +4,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import wj.flab.group_wise.domain.Member;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
 import wj.flab.group_wise.domain.exception.TargetEntity;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
@@ -13,6 +12,11 @@ import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCreateRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseJoinRequest;
+import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseJoinRequest.GroupPurchaseOrderRequest;
+import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseLeaveRequest;
+import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseOrderModificationRequest;
+import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseOrderModificationRequest.Request;
+import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseOrderModificationRequest.RequestType;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseUpdateRequest;
 import wj.flab.group_wise.repository.GroupPurchaseRepository;
 
@@ -86,15 +90,42 @@ public class GroupPurchaseService {
     public void joinGroupPurchase(Long groupPurchaseId, GroupPurchaseJoinRequest groupJoinRequest) {
 
         GroupPurchase groupPurchase = findGroupPurchase(groupPurchaseId);
-        Member member = memberService.findMember(groupJoinRequest.memberId());
+        Long memberId = groupJoinRequest.memberId();
         Product product = productService.findProduct(groupJoinRequest.productId());
-        Long stockId = groupJoinRequest.productStockId();
-        int quantity = groupJoinRequest.quantity();
+
+        for (GroupPurchaseOrderRequest order : groupJoinRequest.orders()) {
+            Long stockId = order.productStockId();
+            int quantity = order.quantity();
+            product.decreaseStockQuantity(stockId, quantity);
+            groupPurchase.addParticipant(memberId, stockId, quantity);
+        }
 
         // todo 추후 참여자에게 최소 인원 달성 알림 기능 구현하기
-
-        product.decreaseStockQuantity(stockId, quantity);
-        groupPurchase.addParticipant(member, stockId, quantity);
     }
 
+    public void modifyOrder(Long groupPurchaseId, GroupPurchaseOrderModificationRequest orderModificationRequest) {
+        GroupPurchase groupPurchase = findGroupPurchase(groupPurchaseId);
+        Long memberId = orderModificationRequest.memberId();
+        List<Request> requests = orderModificationRequest.requests();
+
+        for (Request request : requests) {
+            RequestType requestType = request.requestType();
+            Long stockId = request.productStockId();
+            int quantity = request.quantity();
+
+            if (requestType == RequestType.ADD) {
+                groupPurchase.addOrder(memberId, stockId, quantity);
+            } else if (requestType == RequestType.QUANTITY_UPDATE) {
+                groupPurchase.updateOrder(memberId, stockId, quantity);
+            } else if (requestType == RequestType.DELETE) {
+                groupPurchase.deleteOrder(memberId, stockId);
+            }
+        }
+    }
+
+    public void leaveGroupPurchase(Long groupPurchaseId, GroupPurchaseLeaveRequest leaveRequest) {
+        GroupPurchase groupPurchase = findGroupPurchase(groupPurchaseId);
+        groupPurchase.removeParticipant(leaveRequest.memberId());
+        // todo 추후 참여자에게 알림 기능 구현하기
+    }
 }

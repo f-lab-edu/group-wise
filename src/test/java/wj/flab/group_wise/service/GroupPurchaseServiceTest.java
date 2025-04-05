@@ -1,6 +1,7 @@
 package wj.flab.group_wise.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import wj.flab.group_wise.domain.product.Product.SaleStatus;
 import wj.flab.group_wise.domain.product.ProductStock;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCreateRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseJoinRequest;
+import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseJoinRequest.GroupPurchaseOrderRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseUpdateRequest;
 import wj.flab.group_wise.dto.member.MemberCreateRequest;
 import wj.flab.group_wise.dto.product.request.ProductStockSetRequest;
@@ -120,8 +122,10 @@ class GroupPurchaseServiceTest {
         Long memberId = setAndGetMemberId();
 
         // when : 공동구매 참여
-        groupPurchaseService.joinGroupPurchase(groupPurchaseId,
-            new GroupPurchaseJoinRequest(memberId, productId, stockId, 1));
+        groupPurchaseService.joinGroupPurchase(
+            groupPurchaseId,
+            new GroupPurchaseJoinRequest(memberId, productId,
+                List.of(new GroupPurchaseOrderRequest(stockId, 1))));
 
         // then : 공동구매 참여 확인
         GroupPurchase groupPurchase = groupPurchaseService.findGroupPurchase(groupPurchaseId);

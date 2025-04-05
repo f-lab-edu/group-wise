@@ -17,6 +17,8 @@ import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
 import wj.flab.group_wise.dto.CreateResponse;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCreateRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseJoinRequest;
+import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseLeaveRequest;
+import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseOrderModificationRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseUpdateRequest;
 import wj.flab.group_wise.service.GroupPurchaseService;
 
@@ -78,6 +80,15 @@ public class GroupPurchaseController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{groupPurchaseId}/modifyOrder")
+    public ResponseEntity<Void> modifyOrder(@PathVariable Long groupPurchaseId, @RequestBody GroupPurchaseOrderModificationRequest modificationRequest) {
+        groupPurchaseService.modifyOrder(groupPurchaseId, modificationRequest);
+        return ResponseEntity.noContent().build();
+    }
 
-
+    @PostMapping("/{groupPurchaseId}/leave")
+    public ResponseEntity<Void> leaveGroupPurchase(@PathVariable Long groupPurchaseId, @RequestBody GroupPurchaseLeaveRequest leaveRequest) {
+        groupPurchaseService.leaveGroupPurchase(groupPurchaseId, leaveRequest);
+        return ResponseEntity.noContent().build();
+    }
 }
