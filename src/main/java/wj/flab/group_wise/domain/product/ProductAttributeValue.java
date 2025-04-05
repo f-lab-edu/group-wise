@@ -1,5 +1,8 @@
 package wj.flab.group_wise.domain.product;
 
+import static lombok.AccessLevel.PRIVATE;
+import static lombok.AccessLevel.PROTECTED;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -10,15 +13,16 @@ import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 
 @Entity
-@Getter
-@EqualsAndHashCode(of = {"productAttribute", "attributeValueName"}, callSuper = false)
+@Getter(/*PROTECTED*/)
+@NoArgsConstructor(access = PROTECTED)
+@EqualsAndHashCode(of = {"id"}, callSuper = false)
 public class ProductAttributeValue extends BaseTimeEntity {
-
-    protected ProductAttributeValue() {}
 
     protected ProductAttributeValue(ProductAttribute productAttribute, String attributeValueName, int additionalPrice) {
         this.productAttribute = productAttribute;
@@ -27,11 +31,11 @@ public class ProductAttributeValue extends BaseTimeEntity {
     }
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter(PRIVATE)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_attribute_id", nullable = false)
-//    @NotNull
     private ProductAttribute productAttribute;      // 상품의 선택항목명 엔티티 (ex. 색상, 사이즈 등)
 
     @NotBlank
@@ -48,4 +52,5 @@ public class ProductAttributeValue extends BaseTimeEntity {
         this.attributeValueName = attributeValue;
         this.additionalPrice = additionalPrice;
     }
+
 }

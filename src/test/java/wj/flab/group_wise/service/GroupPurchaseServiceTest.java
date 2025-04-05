@@ -10,12 +10,13 @@ import org.springframework.transaction.annotation.Transactional;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
 import wj.flab.group_wise.domain.product.Product;
+import wj.flab.group_wise.domain.product.Product.SaleStatus;
 import wj.flab.group_wise.domain.product.ProductStock;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCreateRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseJoinRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseUpdateRequest;
 import wj.flab.group_wise.dto.member.MemberCreateRequest;
-import wj.flab.group_wise.dto.product.ProductStockSetRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockSetRequest;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -38,6 +39,8 @@ class GroupPurchaseServiceTest {
         // given
         Long productId = setAndGetProductId();
 
+        setAndGetProductStockId(productId);
+
         // when : 공동구매 생성
         Long groupPurchaseId = setAndGetGroupPurchaseId(productId, "공동구매 1");
 
@@ -47,7 +50,9 @@ class GroupPurchaseServiceTest {
     }
 
     private Long setAndGetGroupPurchaseId(Long productId, String title) {
-        return groupPurchaseService.createGroupPurchase(getGroupPurchaseCreateRequest(productId, title));
+        productService.updateProductDetails(productId, productDomainDtoCreator.createUpdateProductSaleStatusRequest(SaleStatus.SALE));
+        Long groupPurchaseId = groupPurchaseService.createGroupPurchase(getGroupPurchaseCreateRequest(productId, title));
+        return groupPurchaseId;
     }
 
     @Test
@@ -96,7 +101,7 @@ class GroupPurchaseServiceTest {
     void cancelGroupPurchase() {
         // given
         Long productId = setAndGetProductId();
-        Long groupPurchaseId = setAndGetStartedGroupPurchaseId(productId);
+        Long groupPurchaseId = setAndGetGroupPurchaseId(productId);
 
         // when : 공동구매 취소
         groupPurchaseService.cancelGroupPurchase(groupPurchaseId);
@@ -111,7 +116,7 @@ class GroupPurchaseServiceTest {
         // given
         Long productId = setAndGetProductId();
         Long stockId = setAndGetProductStockId(productId);
-        Long groupPurchaseId = setAndGetStartedGroupPurchaseId(productId);
+        Long groupPurchaseId = setAndGetGroupPurchaseId(productId);
         Long memberId = setAndGetMemberId();
 
         // when : 공동구매 참여
@@ -124,24 +129,29 @@ class GroupPurchaseServiceTest {
     }
 
     private Long setAndGetProductId() {
-        return productService.createProduct(productDomainDtoCreator.createProductToCreate(1, 1));
+        Long productId = productService.createProduct(productDomainDtoCreator.createProductToCreate(1, 1));
+        Product product = productService.findProduct(productId);
+        ProductStockSetRequest productStockSetRequest = productDomainDtoCreator.createStockToSet(productId, product.getProductStocks());
+        productService.setProductStock(productId, productStockSetRequest);
+        return productId;
     }
 
     private Long setAndGetProductStockId(Long productId) {
         Product product = productService.findProduct(productId);
         ProductStockSetRequest productStockSetRequest = productDomainDtoCreator.createStockToSet(productId, product.getProductStocks());
-        productService.setProductStock(productStockSetRequest);
+        productService.setProductStock(productId, productStockSetRequest);
 
         ProductStock stock = product.getProductStocks().get(0);
         return stock.getId();
     }
 
     private Long setAndGetMemberId() {
-        return memberService.createMember(
+        return memberService.registerMember(
             new MemberCreateRequest("member1", "password1", "address"));
     }
 
-    private Long setAndGetStartedGroupPurchaseId(Long productId) {
+    private Long setAndGetGroupPurchaseId(Long productId) {
+        productService.updateProductDetails(productId, productDomainDtoCreator.createUpdateProductSaleStatusRequest(SaleStatus.SALE));
         Long groupPurchaseId = groupPurchaseService.createGroupPurchase(getGroupPurchaseCreateRequest(productId, "공동구매"));
         groupPurchaseService.startGroupPurchase(groupPurchaseId);
         return groupPurchaseId;

@@ -1,5 +1,7 @@
 package wj.flab.group_wise.domain.product;
 
+import static lombok.AccessLevel.PROTECTED;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -13,23 +15,26 @@ import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Range;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
 import wj.flab.group_wise.domain.exception.TargetEntity;
-import wj.flab.group_wise.dto.product.ProductStockAddRequest.StockAddRequest;
-import wj.flab.group_wise.dto.product.ProductStockSetRequest.StockDeleteRequest;
-import wj.flab.group_wise.dto.product.ProductStockSetRequest.StockQuantitySetRequest;
-import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest;
-import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeDeleteRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueDeleteRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueUpdateRequest;
+import wj.flab.group_wise.dto.product.request.ProductCreateRequest.AttributeCreateRequest;
+import wj.flab.group_wise.dto.product.request.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeDeleteRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeUpdateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueDeleteRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueUpdateRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockAddRequest.StockAddRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockSetRequest.StockDeleteRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockSetRequest.StockQuantitySetRequest;
 import wj.flab.group_wise.util.ListUtils;
 
-@Entity @Getter
+@Entity
+@NoArgsConstructor(access = PROTECTED)
+@Getter(/*PROTECTED*/)
 public class Product extends BaseTimeEntity {
 
     public enum SaleStatus {
@@ -69,24 +74,39 @@ public class Product extends BaseTimeEntity {
         orphanRemoval = true)
     private List<ProductStock> productStocks = new ArrayList<>();           // 상품의 선택항목 조합에 따른 재고
 
-    public static Product createProduct(String seller, String productName, int basePrice, SaleStatus saleStatus) {
-        return new Product(seller, productName, basePrice, saleStatus);
+
+    public static Product createProduct(String seller, String productName, int basePrice) {
+        return new Product(seller, productName, basePrice);
     }
 
-    protected Product() {
-    }
-
-    private Product(String seller, String productName, int basePrice, SaleStatus saleStatus) {
+    private Product(String seller, String productName, int basePrice) {
         this.seller = seller;
         this.productName = productName;
         this.basePrice = basePrice;
-        this.saleStatus = saleStatus;
+        this.saleStatus = SaleStatus.PREPARE;
     }
 
-    public void updateProductBasicInfo(String seller, String productName, int basePrice, SaleStatus saleStatus) {
-        this.seller = seller;
-        this.productName = productName;
-        this.basePrice = basePrice;
+    public void updateProductBasicInfo(String seller, String productName, Integer basePrice, SaleStatus saleStatus) {
+        if (seller != null && !seller.isBlank()) this.seller = seller;
+        if (productName != null && !productName.isBlank()) this.productName = productName;
+        if (basePrice != null) {
+            if (basePrice < 0) throw new IllegalArgumentException("상품의 기준가는 0보다 작을 수 없습니다.");
+            this.basePrice = basePrice;
+        }
+        if (saleStatus != null) changeSaleStatus(saleStatus);
+    }
+
+    public void changeSaleStatus(SaleStatus saleStatus) {
+
+        if (saleStatus == SaleStatus.SALE) {
+
+            this.productStocks.stream().filter(
+                    stock -> !stock.hasStockQuantitySet())
+                .findFirst()
+                .ifPresent(stock -> {
+                    throw new IllegalStateException("재고수량이 설정되지 않은 상품은 판매상태를 판매중으로 설정할 수 없습니다.");});
+        }
+
         this.saleStatus = saleStatus;
     }
 
@@ -107,7 +127,7 @@ public class Product extends BaseTimeEntity {
 
     private void convertToAttrEntityAndAppendToAttrList(AttributeCreateRequest attr) {
         ProductAttribute newAttribute = new ProductAttribute(attr.attributeName(), this);
-        newAttribute.appendValues(attr.productAttributeValues());
+        newAttribute.appendValues(attr.attributeValues());
         productAttributes.add(newAttribute);
     }
 
@@ -117,12 +137,15 @@ public class Product extends BaseTimeEntity {
         List<AttributeUpdateRequest> attrsToUpdate = productToUpdate.updateAttributes();
         List<AttributeDeleteRequest> attrsToRemove = productToUpdate.deleteAttributesIds();
 
-        createAttributes(attrsToCreate);
-        removeAttributes(attrsToRemove);
-        boolean hasChangeInValue = updateAttributes(attrsToUpdate);
+        boolean hasChangeInAttrValue = attrsToUpdate != null && !attrsToUpdate.isEmpty() && updateAttributes(attrsToUpdate);
+        boolean hasAttrToRemove = attrsToRemove != null && !attrsToRemove.isEmpty();
+        boolean hasAttrToCreate = attrsToCreate != null && !attrsToCreate.isEmpty();
+
+        if (hasAttrToRemove) removeAttributes(attrsToRemove);
+        if (hasAttrToCreate) createAttributes(attrsToCreate);
 
         boolean requiresStockRenewal
-            = hasChangeInValue || !attrsToCreate.isEmpty() || !attrsToRemove.isEmpty() ;
+            = hasChangeInAttrValue || hasAttrToRemove || hasAttrToCreate ;
 
         if (requiresStockRenewal) {
             renewProductStocks();
@@ -145,11 +168,14 @@ public class Product extends BaseTimeEntity {
             List<AttributeValueUpdateRequest> updateValues = attr.updateAttributeValues();
             List<AttributeValueDeleteRequest> deleteValues = attr.deleteAttributeValuesIds();
 
-            targetAttr.appendValues(newValues);
-            targetAttr.removeValues(deleteValues);
             boolean differenceFoundInAdditionalPrice = targetAttr.updateValues(updateValues);
+            boolean hasValueToAppend = newValues != null && !newValues.isEmpty();
+            boolean hasValueToDelete = deleteValues != null && !deleteValues.isEmpty();
 
-            hasChangeInValue = differenceFoundInAdditionalPrice || !newValues.isEmpty() || !deleteValues.isEmpty();
+            if (hasValueToAppend) targetAttr.appendValues(newValues);
+            if (hasValueToDelete) targetAttr.removeValues(deleteValues);
+
+            hasChangeInValue = differenceFoundInAdditionalPrice || hasValueToAppend || hasValueToDelete;
         }
         return hasChangeInValue;
     }
@@ -162,8 +188,10 @@ public class Product extends BaseTimeEntity {
     }
 
     private void renewProductStocks() {
+        productStocks.forEach(stock -> stock.getValues().clear());
         productStocks.clear();
         createStockCombinations();
+        saleStatus = SaleStatus.PREPARE;
     }
 
     private void createStockCombinations() {
@@ -207,7 +235,7 @@ public class Product extends BaseTimeEntity {
             .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT_ATTRIBUTE, productAttributeId));
     }
 
-    public ProductStock getTargetStock(Long stockId) {
+    private ProductStock getTargetStock(Long stockId) {
         return productStocks.stream()
             .filter(s -> s.getId().equals(stockId))
             .findFirst()
@@ -218,4 +246,5 @@ public class Product extends BaseTimeEntity {
         ProductStock targetStock = getTargetStock(stockId);
         targetStock.decreaseStockQuantity(quantity);
     }
+
 }

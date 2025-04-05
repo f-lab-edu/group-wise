@@ -1,5 +1,7 @@
 package wj.flab.group_wise.domain.product;
 
+import static lombok.AccessLevel.PROTECTED;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -13,14 +15,19 @@ import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 
+
 @Entity
-@Getter
+@Getter(/*PROTECTED*/)
+@NoArgsConstructor(access = PROTECTED)
 public class ProductStock extends BaseTimeEntity implements Purchasable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter(PROTECTED)
     private Long id;
 
     private Integer stockQuantity;
@@ -34,10 +41,8 @@ public class ProductStock extends BaseTimeEntity implements Purchasable {
         mappedBy = "productStock",
         fetch = FetchType.LAZY,
         cascade = CascadeType.ALL,
-        orphanRemoval = true )
+        orphanRemoval = true)
     private List<ProductAttributeValueStock> values = new ArrayList<>(); // 상품 선택 항목에 대해 선택된 값
-
-    protected ProductStock() {}
 
     protected ProductStock(Product product) {
         this.product = product;
@@ -56,8 +61,8 @@ public class ProductStock extends BaseTimeEntity implements Purchasable {
     public int getPrice() {
         return product.getBasePrice()
             + values.stream()
-                .mapToInt(v -> v.getProductAttributeValue().getAdditionalPrice())
-                .sum();
+            .mapToInt(v -> v.getProductAttributeValue().getAdditionalPrice())
+            .sum();
     }
 
     @Override
@@ -74,6 +79,10 @@ public class ProductStock extends BaseTimeEntity implements Purchasable {
 
     protected void addStockQuantity(int quantity) {
         this.stockQuantity = getStockQuantity() + quantity;
+    }
+
+    protected boolean hasStockQuantitySet() {
+        return stockQuantity != null;
     }
 
     protected void setStockQuantity(int quantity) {
