@@ -8,17 +8,18 @@ import wj.flab.group_wise.domain.product.Product.SaleStatus;
 import wj.flab.group_wise.domain.product.ProductAttribute;
 import wj.flab.group_wise.domain.product.ProductAttributeValue;
 import wj.flab.group_wise.domain.product.ProductStock;
-import wj.flab.group_wise.dto.product.ProductCreateRequest;
-import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest;
-import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeDeleteRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueDeleteRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueUpdateRequest;
-import wj.flab.group_wise.dto.product.ProductStockAddRequest.StockAddRequest;
-import wj.flab.group_wise.dto.product.ProductStockSetRequest;
-import wj.flab.group_wise.dto.product.ProductStockSetRequest.StockDeleteRequest;
-import wj.flab.group_wise.dto.product.ProductStockSetRequest.StockQuantitySetRequest;
+import wj.flab.group_wise.dto.product.request.ProductCreateRequest;
+import wj.flab.group_wise.dto.product.request.ProductCreateRequest.AttributeCreateRequest;
+import wj.flab.group_wise.dto.product.request.ProductCreateRequest.AttributeCreateRequest.AttributeValueCreateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeDeleteRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeUpdateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueDeleteRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeUpdateRequest.AttributeValueUpdateRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockAddRequest.StockAddRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockSetRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockSetRequest.StockDeleteRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockSetRequest.StockQuantitySetRequest;
 
 @Component
 public class ProductDomainDtoCreator {
@@ -62,7 +63,7 @@ public class ProductDomainDtoCreator {
             "seller",
             "productName",
             10000,
-            SaleStatus.SALE,
+            SaleStatus.PREPARE,
             createAttrsToCreate(attrCount, valuePerAttrCount)
         );
     }
@@ -101,7 +102,7 @@ public class ProductDomainDtoCreator {
             }
         }
 
-        return new ProductStockSetRequest(productId,
+        return new ProductStockSetRequest(
             stockQuantitySetRequests,
             stockDeleteRequests
         );
@@ -115,4 +116,15 @@ public class ProductDomainDtoCreator {
         return stockAddRequests;
     }
 
+    public ProductDetailUpdateRequest createUpdateProductSaleStatusRequest(SaleStatus saleStatus) {
+        return new ProductDetailUpdateRequest(
+            null,
+            null,
+            null,
+            saleStatus,
+            null,
+            null,
+            null
+        );
+    }
 }

@@ -12,14 +12,16 @@ import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
 import wj.flab.group_wise.domain.product.ProductAttribute;
 import wj.flab.group_wise.domain.product.ProductStock;
-import wj.flab.group_wise.dto.product.ProductCreateRequest;
-import wj.flab.group_wise.dto.product.ProductCreateRequest.AttributeCreateRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeDeleteRequest;
-import wj.flab.group_wise.dto.product.ProductDetailUpdateRequest.AttributeUpdateRequest;
-import wj.flab.group_wise.dto.product.ProductStockAddRequest;
-import wj.flab.group_wise.dto.product.ProductStockAddRequest.StockAddRequest;
-import wj.flab.group_wise.dto.product.ProductStockSetRequest;
+import wj.flab.group_wise.domain.product.ProductViewResponseMapper;
+import wj.flab.group_wise.dto.product.request.ProductCreateRequest;
+import wj.flab.group_wise.dto.product.request.ProductCreateRequest.AttributeCreateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeDeleteRequest;
+import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest.AttributeUpdateRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockAddRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockAddRequest.StockAddRequest;
+import wj.flab.group_wise.dto.product.request.ProductStockSetRequest;
+import wj.flab.group_wise.dto.product.response.ProductViewResponse;
 import wj.flab.group_wise.repository.ProductRepository;
 
 @SpringBootTest
@@ -35,6 +37,9 @@ class ProductServiceTest {
 
     @Autowired
     private ProductDomainDtoCreator productDomainDtoCreator;
+
+    @Autowired
+    private ProductViewResponseMapper productResponseMapper;
 
 
     @Test
@@ -71,7 +76,8 @@ class ProductServiceTest {
         long productSize = products.size();
         Assertions.assertThat(productSize).isEqualTo(1);
 
-        int stockSize = products.get(0).getProductStocks().size();
+        ProductViewResponse productViewResponse = productResponseMapper.mapAttributeValues(products.get(0));
+        int stockSize = productViewResponse.productStocks().size();
         Assertions.assertThat(stockSize).isEqualTo((int) Math.pow(valuePerAttrCount, attrCount));
     }
 
@@ -84,7 +90,7 @@ class ProductServiceTest {
         // when: 재고 항목 수량을 1로 설정하거나, 재고 항목을 삭제
         Product product = productRepository.findById(productId).orElseThrow(() -> new AssertionError("상품이 생성되지 않았습니다"));
         ProductStockSetRequest productStockSetRequest = productDomainDtoCreator.createStockToSet(productId, product.getProductStocks());
-        productService.setProductStock(productStockSetRequest);
+        productService.setProductStock(productId, productStockSetRequest);
 
         // then: 재고 개수와 재고량이 예상대로 변경되었는지 확인
         Product updatedProduct = productRepository.findById(productId).get();
@@ -113,7 +119,7 @@ class ProductServiceTest {
             .sum();
 
         List<StockAddRequest> stockAddRequests = productDomainDtoCreator.createStocksToUpdate(stocks);
-        productService.addProductStock( new ProductStockAddRequest(productId, stockAddRequests) );
+        productService.addProductStock(productId, new ProductStockAddRequest(stockAddRequests));
         int expectedQuantityChange = calculateTotalQuantityChange(originalStockSize);
 
         // then: 재고 개수(stock size)는 유지되고, 총 재고량(sum of stock quantity)이 예상대로 변경되었는지 확인
@@ -146,16 +152,16 @@ class ProductServiceTest {
         List<AttributeUpdateRequest> attrsToUpdate = productDomainDtoCreator.createAttrsToUpdate(product.getProductAttributes().get(0));
         List<AttributeDeleteRequest> attrsToDelete = productDomainDtoCreator.createAttrsToDelete(product.getProductAttributes().get(1)); // 속성 1개 삭제
 
-        productService.updateProductDetails(new ProductDetailUpdateRequest(
-            productId,
-            "seller",
-            "productName",
-            10000,
-            SaleStatus.SALE,
-            attrsToCreate,
-            attrsToUpdate,
-            attrsToDelete
-        ));
+        productService.updateProductDetails(productId,
+            new ProductDetailUpdateRequest(
+                "seller",
+                "productName",
+                10000,
+                SaleStatus.PREPARE,
+                attrsToCreate,
+                attrsToUpdate,
+                attrsToDelete
+            ));
 
         // then: 상품 상세 정보가 예상대로 수정되었는지 확인
         Product updatedProduct = productRepository.findById(productId).get();
@@ -171,8 +177,6 @@ class ProductServiceTest {
         Assertions.assertThat(updatedProduct.getProductStocks().size()).isEqualTo(expectedStockSize);
 
     }
-
-
 
 
     @Test
