@@ -21,6 +21,7 @@ import wj.flab.group_wise.domain.BaseTimeEntity;
 
 @Entity
 @NoArgsConstructor(access = PROTECTED)
+@Getter
 public class GroupPurchase extends BaseTimeEntity {
 
     @Getter
@@ -38,15 +39,12 @@ public class GroupPurchase extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Getter
     private Long id;
 
-    @Getter
     private String title;                   // 공동구매 게시물 제목
     private Long productId;                 // 상품 ID
 
     private Integer discountRate;           // 할인율
-    private Integer initialPrice;           // 공구 가격 (할인율이 적용된, 옵션이 최종구성된 상품 가격 중 최소금액)
     private Integer minimumParticipants;    // 최소 진행 인원
 
     private LocalDateTime startDate;        // 시작일
@@ -58,19 +56,18 @@ public class GroupPurchase extends BaseTimeEntity {
         cascade = CascadeType.ALL,
         orphanRemoval = true
     )
+    @Getter(PROTECTED)
     private List<GroupPurchaseParticipant> groupPurchaseParticipants = new ArrayList<>(); // 참여 회원
 
     @Enumerated(EnumType.STRING)
-    @Getter
     private Status status;                                                                // 진행 상태
 
-    public static GroupPurchase createGroupPurchase(String title, Long productId, Integer discountRate, Integer initialPrice, Integer minimumParticipants, LocalDateTime startDate,
+    public static GroupPurchase createGroupPurchase(String title, Long productId, Integer discountRate, Integer minimumParticipants, LocalDateTime startDate,
         LocalDateTime endDate) {
         GroupPurchase groupPurchase = new GroupPurchase();
         groupPurchase.title = title;
         groupPurchase.productId = productId;
         groupPurchase.discountRate = discountRate;
-        groupPurchase.initialPrice = initialPrice;
         groupPurchase.minimumParticipants = minimumParticipants;
         groupPurchase.startDate = startDate;
         groupPurchase.endDate = endDate;
@@ -78,7 +75,7 @@ public class GroupPurchase extends BaseTimeEntity {
         return groupPurchase;
     }
 
-    public void updateGroupPurchaseInfo(String title, Long productId, Integer discountRate, Integer initialPrice, Integer minimumParticipants, LocalDateTime startDate, LocalDateTime endDate) {
+    public void updateGroupPurchaseInfo(String title, Long productId, Integer discountRate, Integer minimumParticipants, LocalDateTime startDate, LocalDateTime endDate) {
         if (status != Status.PENDING) {
             throw new IllegalStateException("진행 중인 공동구매는 수정할 수 없습니다.");
         }
@@ -90,9 +87,6 @@ public class GroupPurchase extends BaseTimeEntity {
         }
         if (discountRate != null) {
             this.discountRate = discountRate;
-        }
-        if (initialPrice != null) {
-            this.initialPrice = initialPrice;
         }
         if (minimumParticipants != null) {
             this.minimumParticipants = minimumParticipants;
@@ -180,6 +174,23 @@ public class GroupPurchase extends BaseTimeEntity {
     public void deleteOrder(Long memberId, Long stockId) {
         GroupPurchaseParticipant participant = findParticipant(memberId, stockId);
         groupPurchaseParticipants.remove(participant);
+    }
+
+    public void wishGroupPurchase(Long memberId, boolean wish) {
+
+        // 즐겨찾기는 공동구매 게시물 단위로 설정함 (stock 단위 아님)
+        List<GroupPurchaseParticipant> participants = findParticipants(memberId);
+
+        if (participants.isEmpty()) {
+            // 즐겨찾기를 위해 생성
+            GroupPurchaseParticipant participant = GroupPurchaseParticipant.createWishlistParticipant(this, memberId);
+            this.groupPurchaseParticipants.add(participant);
+        } else {
+            // 이미 존재하는 참여자에 대해 즐겨찾기 설정
+            participants.forEach(participant -> {
+                participant.setWishlist(wish);
+            });
+        }
     }
 
     private GroupPurchaseParticipant findParticipant(Long memberId, Long productStockId) {

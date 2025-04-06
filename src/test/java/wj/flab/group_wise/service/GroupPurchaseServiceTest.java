@@ -15,7 +15,6 @@ import wj.flab.group_wise.domain.product.Product.SaleStatus;
 import wj.flab.group_wise.domain.product.ProductStock;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCreateRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseJoinRequest;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseJoinRequest.GroupPurchaseOrderRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseUpdateRequest;
 import wj.flab.group_wise.dto.member.MemberCreateRequest;
 import wj.flab.group_wise.dto.product.request.ProductStockSetRequest;
@@ -124,8 +123,8 @@ class GroupPurchaseServiceTest {
         // when : 공동구매 참여
         groupPurchaseService.joinGroupPurchase(
             groupPurchaseId,
-            new GroupPurchaseJoinRequest(memberId, productId,
-                List.of(new GroupPurchaseOrderRequest(stockId, 1))));
+            memberId,
+            List.of(new GroupPurchaseJoinRequest(stockId, 1)));
 
         // then : 공동구매 참여 확인
         GroupPurchase groupPurchase = groupPurchaseService.findGroupPurchase(groupPurchaseId);
@@ -134,14 +133,14 @@ class GroupPurchaseServiceTest {
 
     private Long setAndGetProductId() {
         Long productId = productService.createProduct(productDomainDtoCreator.createProductToCreate(1, 1));
-        Product product = productService.findProduct(productId);
+        Product product = productService.findProductById(productId);
         ProductStockSetRequest productStockSetRequest = productDomainDtoCreator.createStockToSet(productId, product.getProductStocks());
         productService.setProductStock(productId, productStockSetRequest);
         return productId;
     }
 
     private Long setAndGetProductStockId(Long productId) {
-        Product product = productService.findProduct(productId);
+        Product product = productService.findProductById(productId);
         ProductStockSetRequest productStockSetRequest = productDomainDtoCreator.createStockToSet(productId, product.getProductStocks());
         productService.setProductStock(productId, productStockSetRequest);
 
@@ -167,7 +166,6 @@ class GroupPurchaseServiceTest {
             productId,
             10,
             10000,
-            10,
             LocalDateTime.now().plusDays(1),
             LocalDateTime.now().plusDays(2)
         );
@@ -178,7 +176,6 @@ class GroupPurchaseServiceTest {
             title,
             productId,
             20,
-            20000,
             20,
             LocalDateTime.now().plusDays(3),
             LocalDateTime.now().plusDays(4)

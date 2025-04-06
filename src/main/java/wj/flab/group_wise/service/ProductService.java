@@ -28,7 +28,7 @@ public class ProductService {
     private final ProductViewResponseMapper productViewResponseMapper;
 
     public ProductViewResponse getProductInfo(Long productId) {
-        Product product = findProduct(productId);
+        Product product = findProductById(productId);
         return productViewResponseMapper.mapAttributeValues(product);
     }
 
@@ -46,20 +46,20 @@ public class ProductService {
     }
 
     public void setProductStock(Long productId, ProductStockSetRequest productToSetStock) {
-        Product product = findProduct(productId);
+        Product product = findProductById(productId);
         productValidator.validateProductLifeCycleBeforeMajorUpdate(product);
         product.setProductStocks(productToSetStock.stockQuantitySetRequests());
         product.deleteProductStocks(productToSetStock.stockDeleteRequests());
     }
 
     public void addProductStock(Long productId, ProductStockAddRequest productToAddStock) {
-        Product product = findProduct(productId);
+        Product product = findProductById(productId);
         List<StockAddRequest> stockAddRequests = productToAddStock.stockAddRequests();
         product.addProductStocks(stockAddRequests);
     }
 
     public void updateProductDetails(Long productId, ProductDetailUpdateRequest productToUpdate) {
-        Product product = findProduct(productId);
+        Product product = findProductById(productId);
         productValidator.validateProductLifeCycleBeforeMajorUpdate(product);
 
         product.updateProductBasicInfo(
@@ -72,13 +72,20 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Product findProduct(Long productId) {
+    public Product findProductById(Long productId) {
         return productRepository.findById(productId)
             .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT, productId));
     }
 
+    @Transactional(readOnly = true)
+    public Product findProductByProductStockId(Long productStockId) {
+        return productRepository.findByProductStockId(productStockId)
+            .orElseThrow(() -> new EntityNotFoundException(TargetEntity.PRODUCT,
+                String.format("productStockId 가 %d 인 상품이 존재하지 않습니다.", productStockId)));
+    }
+
     public void deleteProduct(Long productId) {
-        Product product = findProduct(productId);
+        Product product = findProductById(productId);
         productValidator.validateProductLifeCycleBeforeMajorUpdate(product);
         productRepository.delete(product);
     }

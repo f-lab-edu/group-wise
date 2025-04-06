@@ -9,7 +9,6 @@ public record GroupPurchaseUpdateRequest(
     @NotBlank String title,
     @NotNull Long productId,
     @Range(min = 0, max = 100) int discountRate,
-    @Range(min = 0) int initialPrice,
     @Range(min = 0) int minimumParticipants,
     @NotNull LocalDateTime startDate,
     @NotNull LocalDateTime endDate) {}

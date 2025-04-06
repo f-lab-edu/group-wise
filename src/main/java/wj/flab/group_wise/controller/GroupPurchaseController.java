@@ -1,6 +1,7 @@
 package wj.flab.group_wise.controller;
 
 import java.net.URI;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +18,9 @@ import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
 import wj.flab.group_wise.dto.CreateResponse;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCreateRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseJoinRequest;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseLeaveRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseOrderModificationRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseUpdateRequest;
+import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseWishRequest;
 import wj.flab.group_wise.service.GroupPurchaseService;
 
 @RestController
@@ -74,21 +75,43 @@ public class GroupPurchaseController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{groupPurchaseId}/join")
-    public ResponseEntity<Void> joinGroupPurchase(@PathVariable Long groupPurchaseId, @RequestBody GroupPurchaseJoinRequest groupPurchaseJoinRequest) {
-        groupPurchaseService.joinGroupPurchase(groupPurchaseId, groupPurchaseJoinRequest);
+    @PostMapping("/{groupPurchaseId}/participants/{memberId}/join")
+    public ResponseEntity<Void> joinGroupPurchase(
+        @PathVariable Long groupPurchaseId,
+        @PathVariable Long memberId,
+        @RequestBody List<GroupPurchaseJoinRequest> joinRequests) {
+
+        groupPurchaseService.joinGroupPurchase(groupPurchaseId, memberId, joinRequests);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{groupPurchaseId}/modifyOrder")
-    public ResponseEntity<Void> modifyOrder(@PathVariable Long groupPurchaseId, @RequestBody GroupPurchaseOrderModificationRequest modificationRequest) {
-        groupPurchaseService.modifyOrder(groupPurchaseId, modificationRequest);
+    @PostMapping("/{groupPurchaseId}/participants/{memberId}/modifyOrder")
+    public ResponseEntity<Void> modifyOrder(
+        @PathVariable Long groupPurchaseId,
+        @PathVariable Long memberId,
+        @RequestBody List<GroupPurchaseOrderModificationRequest> modificationRequests) {
+
+        groupPurchaseService.modifyOrder(groupPurchaseId, memberId, modificationRequests);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{groupPurchaseId}/leave")
-    public ResponseEntity<Void> leaveGroupPurchase(@PathVariable Long groupPurchaseId, @RequestBody GroupPurchaseLeaveRequest leaveRequest) {
-        groupPurchaseService.leaveGroupPurchase(groupPurchaseId, leaveRequest);
+    @DeleteMapping("/{groupPurchaseId}/participants/{memberId}/leave")
+    public ResponseEntity<Void> leaveGroupPurchase(
+        @PathVariable Long groupPurchaseId,
+        @PathVariable Long memberId) {
+
+        groupPurchaseService.leaveGroupPurchase(groupPurchaseId, memberId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{groupPurchaseId}/participants/{memberId}/wish")
+    public ResponseEntity<Void> wishGroupPurchase(
+        @PathVariable Long groupPurchaseId,
+        @PathVariable Long memberId,
+        @RequestBody GroupPurchaseWishRequest wishRequest
+    ) {
+
+        groupPurchaseService.wishGroupPurchase(groupPurchaseId, memberId, wishRequest.wish());
         return ResponseEntity.noContent().build();
     }
 }

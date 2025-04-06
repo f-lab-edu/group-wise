@@ -19,4 +19,10 @@ public class EntityNotFoundException extends BusinessException { // 404 에러
         this.id = id;
     }
 
+    public EntityNotFoundException(TargetEntity entity, String message) {
+        super(HttpStatus.NOT_FOUND, message);
+        this.entity = entity;
+        this.id = null;
+    }
+
 }
