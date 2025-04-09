@@ -12,9 +12,8 @@ import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCreateRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseJoinRequest;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseOrderModificationRequest;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseOrderModificationRequest.RequestType;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseUpdateRequest;
+import wj.flab.group_wise.domain.groupPurchase.command.GroupPurchaseOrderModifyCommand;
 import wj.flab.group_wise.repository.GroupPurchaseRepository;
 
 @Service
@@ -99,21 +98,11 @@ public class GroupPurchaseService {
     }
 
     public void modifyOrder(Long groupPurchaseId, Long memberId,
-        List<GroupPurchaseOrderModificationRequest> requests) {
+        List<? extends GroupPurchaseOrderModifyCommand> requests) {
         GroupPurchase groupPurchase = findGroupPurchase(groupPurchaseId);
 
-        for (GroupPurchaseOrderModificationRequest request : requests) {
-            RequestType requestType = request.requestType();
-            Long stockId = request.productStockId();
-            int quantity = request.quantity();
-
-            if (requestType == RequestType.ADD) {
-                groupPurchase.addOrder(memberId, stockId, quantity);
-            } else if (requestType == RequestType.QUANTITY_UPDATE) {
-                groupPurchase.updateOrder(memberId, stockId, quantity);
-            } else if (requestType == RequestType.DELETE) {
-                groupPurchase.deleteOrder(memberId, stockId);
-            }
+        for (GroupPurchaseOrderModifyCommand request : requests) {
+            request.execute(groupPurchase, memberId);
         }
     }
 
