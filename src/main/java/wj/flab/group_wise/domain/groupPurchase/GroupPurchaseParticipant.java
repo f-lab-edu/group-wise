@@ -8,12 +8,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import wj.flab.group_wise.domain.BaseTimeEntity;
-import wj.flab.group_wise.domain.Member;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter(AccessLevel.PROTECTED)
+@Setter(AccessLevel.PROTECTED)
 public class GroupPurchaseParticipant extends BaseTimeEntity { // 공동구매 참여자와 구매 정보
 
     @Id
@@ -24,9 +27,10 @@ public class GroupPurchaseParticipant extends BaseTimeEntity { // 공동구매 �
     @JoinColumn(name = "group_purchase_id")
     private GroupPurchase groupPurchase;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private Member member;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "member_id")
+//    private Member member;
+    private Long memberId;                  // 참여자 ID
 
     private Long productStockId;            // 선택한 상품
     private Integer quantity;               // 구매 수량
@@ -36,12 +40,12 @@ public class GroupPurchaseParticipant extends BaseTimeEntity { // 공동구매 �
 
     private GroupPurchaseParticipant(
         GroupPurchase groupPurchase,
-        Member member,
+        Long memberId,
         Long productStockId,
         Integer quantity) {
 
         this.groupPurchase = groupPurchase;
-        this.member = member;
+        this.memberId = memberId;
         this.productStockId = productStockId;
         this.quantity = quantity;
         this.isWishlist = false;
@@ -50,26 +54,25 @@ public class GroupPurchaseParticipant extends BaseTimeEntity { // 공동구매 �
 
     private GroupPurchaseParticipant(
         GroupPurchase groupPurchase,
-        Member member,
+        Long memberId,
         boolean isWishlist) {
 
         this.groupPurchase = groupPurchase;
-        this.member = member;
+        this.memberId = memberId;
         this.isWishlist = isWishlist;
     }
 
     protected static GroupPurchaseParticipant createPurchaseParticipant(
         GroupPurchase groupPurchase,
-        Member member,
+        Long memberId,
         Long productStockId,
         Integer quantity) {
 
-        return new GroupPurchaseParticipant(groupPurchase, member, productStockId, quantity);
+        return new GroupPurchaseParticipant(groupPurchase, memberId, productStockId, quantity);
     }
 
-    protected static GroupPurchaseParticipant createWishlistParticipant(GroupPurchase groupPurchase, Member member) {
-        return new GroupPurchaseParticipant(groupPurchase, member, true);
+    protected static GroupPurchaseParticipant createWishlistParticipant(GroupPurchase groupPurchase, Long memberId) {
+        return new GroupPurchaseParticipant(groupPurchase, memberId, true);
     }
-
 
 }

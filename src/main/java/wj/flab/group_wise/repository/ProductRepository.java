@@ -14,4 +14,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT p FROM Product p LEFT JOIN FETCH p.productAttributes ")
     List<Product> findAllWithAttributes();
+
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.productStocks productStock where productStock.id = :productStockId")
+    Optional<Product> findByProductStockId(Long productStockId);
 }
