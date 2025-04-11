@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
+import wj.flab.group_wise.domain.groupPurchase.command.GroupPurchaseOrderModifyCommand;
 import wj.flab.group_wise.dto.CreateResponse;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCreateRequest;
 import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseJoinRequest;
@@ -132,6 +133,16 @@ public class GroupPurchaseController {
         @PathVariable Long groupPurchaseId,
         @PathVariable Long memberId,
         @RequestBody List<DeleteOrderRequest> requests) {
+
+        groupPurchaseService.modifyOrder(groupPurchaseId, memberId, requests);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{groupPurchaseId}/participants/{memberId}/orders/batch")
+    public ResponseEntity<Void> modifyOrderBatch(
+        @PathVariable Long groupPurchaseId,
+        @PathVariable Long memberId,
+        @RequestBody List<GroupPurchaseOrderModifyCommand> requests) {
 
         groupPurchaseService.modifyOrder(groupPurchaseId, memberId, requests);
         return ResponseEntity.noContent().build();
