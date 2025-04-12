@@ -22,12 +22,12 @@ import wj.flab.group_wise.repository.GroupPurchaseRepository;
 public class GroupPurchaseService {
 
     private final ProductService productService;
-    private final MemberService memberService;
     private final GroupPurchaseRepository groupPurchaseRepository;
 
     public Long createGroupPurchase(GroupPurchaseCreateRequest groupCreateRequest) {
         Long productId = groupCreateRequest.productId();
         Product product = productService.findProductById(productId);
+
         if (product.getSaleStatus() != SaleStatus.SALE) {
             throw new IllegalStateException("판매 중인 상품이 아닙니다.");
         }

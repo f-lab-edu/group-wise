@@ -47,28 +47,20 @@ public class GroupPurchaseMember extends BaseTimeEntity { // 공동구매 참여
     private GroupPurchaseMember(GroupPurchase groupPurchase, Long memberId) {
         this.groupPurchase = groupPurchase;
         this.memberId = memberId;
-        this.isWishlist = false;
-        this.hasParticipated = true;
     }
 
-    private GroupPurchaseMember(GroupPurchase groupPurchase,
-        Long memberId, boolean isWishlist) {
-
-        this.groupPurchase = groupPurchase;
-        this.memberId = memberId;
+    private GroupPurchaseMember(GroupPurchase groupPurchase, Long memberId, boolean isWishlist) {
+        this(groupPurchase, memberId);
         this.isWishlist = isWishlist;
     }
 
-    protected static GroupPurchaseMember createPurchaseParticipant(
-        GroupPurchase groupPurchase,
-        Long memberId,
-        Long productStockId,
-        Integer quantity) {
+    private GroupPurchaseMember(GroupPurchase groupPurchase, Long memberId, boolean isWishlist, boolean hasParticipated) {
+        this(groupPurchase, memberId, isWishlist);
+        this.hasParticipated = hasParticipated;
+    }
 
-        GroupPurchaseMember groupPurchaseMember = new GroupPurchaseMember(groupPurchase, memberId);
-        groupPurchaseMember.addGroupPurchaseItem(productStockId, quantity);
-
-        return groupPurchaseMember;
+    protected static GroupPurchaseMember createParticipant(GroupPurchase groupPurchase, Long memberId) {
+        return new GroupPurchaseMember(groupPurchase, memberId, false, true);
     }
 
     protected static GroupPurchaseMember createWishlistParticipant(GroupPurchase groupPurchase, Long memberId) {

@@ -78,7 +78,7 @@ public class GroupPurchaseController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{groupPurchaseId}/participants/{memberId}/join")
+    @PostMapping("/{groupPurchaseId}/members/{memberId}/join")
     public ResponseEntity<Void> joinGroupPurchase(
         @PathVariable Long groupPurchaseId,
         @PathVariable Long memberId,
@@ -88,7 +88,7 @@ public class GroupPurchaseController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{groupPurchaseId}/participants/{memberId}/leave")
+    @DeleteMapping("/{groupPurchaseId}/members/{memberId}/leave")
     public ResponseEntity<Void> leaveGroupPurchase(
         @PathVariable Long groupPurchaseId,
         @PathVariable Long memberId) {
@@ -97,7 +97,7 @@ public class GroupPurchaseController {
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{groupPurchaseId}/participants/{memberId}/wish")
+    @PostMapping("/{groupPurchaseId}/members/{memberId}/wish")
     public ResponseEntity<Void> wishGroupPurchase(
         @PathVariable Long groupPurchaseId,
         @PathVariable Long memberId,
@@ -108,7 +108,7 @@ public class GroupPurchaseController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{groupPurchaseId}/participants/{memberId}/orders")
+    @PostMapping("/{groupPurchaseId}/members/{memberId}/orders")
     public ResponseEntity<Void> addOrder(
         @PathVariable Long groupPurchaseId,
         @PathVariable Long memberId,
@@ -118,7 +118,7 @@ public class GroupPurchaseController {
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{groupPurchaseId}/participants/{memberId}/orders")
+    @PatchMapping("/{groupPurchaseId}/members/{memberId}/orders")
     public ResponseEntity<Void> modifyOrder(
         @PathVariable Long groupPurchaseId,
         @PathVariable Long memberId,
@@ -128,7 +128,7 @@ public class GroupPurchaseController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{groupPurchaseId}/participants/{memberId}/orders")
+    @DeleteMapping("/{groupPurchaseId}/members/{memberId}/orders")
     public ResponseEntity<Void> deleteOrder(
         @PathVariable Long groupPurchaseId,
         @PathVariable Long memberId,
@@ -138,7 +138,7 @@ public class GroupPurchaseController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{groupPurchaseId}/participants/{memberId}/orders/batch")
+    @PostMapping("/{groupPurchaseId}/members/{memberId}/orders/batch")
     public ResponseEntity<Void> modifyOrderBatch(
         @PathVariable Long groupPurchaseId,
         @PathVariable Long memberId,

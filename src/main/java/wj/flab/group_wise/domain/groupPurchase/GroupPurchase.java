@@ -14,6 +14,7 @@ import jakarta.persistence.OneToMany;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -115,13 +116,24 @@ public class GroupPurchase extends BaseTimeEntity {
         status = Status.CANCELLED;
     }
 
-    public void addParticipant(Long memberId, Long productStockId, Integer quantity) {
+    public void addParticipant(Long memberId, long stockId, int quantity) {
         if (!canJoin()) {
             throw new IllegalStateException("현재 참여가 불가능한 공동구매입니다.");
         }
 
-        this.groupPurchaseMembers.add(
-            GroupPurchaseMember.createPurchaseParticipant(this, memberId, productStockId, quantity));
+        GroupPurchaseMember member;
+        Optional<GroupPurchaseMember> memberOptional =
+            groupPurchaseMembers.stream().filter(m -> m.getMemberId().equals(memberId))
+                .findFirst();
+
+        if (memberOptional.isPresent()) {
+            member = memberOptional.get();
+        } else {
+            member = GroupPurchaseMember.createParticipant(this, memberId);
+            groupPurchaseMembers.add(member);
+        }
+
+        member.addGroupPurchaseItem(stockId, quantity);
     }
 
     private boolean canJoin() {
@@ -159,8 +171,19 @@ public class GroupPurchase extends BaseTimeEntity {
     }
 
     public void wishGroupPurchase(Long memberId, boolean wish) {
-        GroupPurchaseMember participant = findParticipant(memberId);
-        participant.setWishlist(wish);
+        GroupPurchaseMember member;
+        Optional<GroupPurchaseMember> memberOptional =
+            groupPurchaseMembers.stream().filter(m -> m.getMemberId().equals(memberId))
+                .findFirst();
+
+        if (memberOptional.isPresent()) {
+            member = memberOptional.get();
+            member.setWishlist(wish);
+
+        } else {
+            member = GroupPurchaseMember.createWishlistParticipant(this, memberId);
+            groupPurchaseMembers.add(member);
+        }
     }
 
     public void removeParticipant(Long memberId) {
