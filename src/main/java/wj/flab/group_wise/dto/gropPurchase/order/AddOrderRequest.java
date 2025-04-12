@@ -9,6 +9,6 @@ public record AddOrderRequest(Long productStockId, Integer quantity) implements 
 
     @Override
     public void execute(GroupPurchase groupPurchase, Long memberId) {
-        groupPurchase.addOrder(memberId, productStockId, quantity);
+        groupPurchase.addItem(memberId, productStockId, quantity);
     }
 }
