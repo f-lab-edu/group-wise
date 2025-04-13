@@ -4,9 +4,5 @@ import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Range;
 
 public record GroupPurchaseJoinRequest(
-    @NotNull Long groupPurchaseId,
-    @NotNull Long memberId,
-    @NotNull Long productId,
     @NotNull Long productStockId,
-    @Range(min = 1) int quantity
-    ) {}
+    @Range(min = 1) int quantity ) {}
