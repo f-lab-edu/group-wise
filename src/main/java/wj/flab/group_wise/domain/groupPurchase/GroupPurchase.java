@@ -14,10 +14,13 @@ import jakarta.persistence.OneToMany;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import wj.flab.group_wise.domain.BaseTimeEntity;
+import wj.flab.group_wise.domain.exception.EntityNotFoundException;
+import wj.flab.group_wise.domain.exception.TargetEntity;
 
 @Entity
 @NoArgsConstructor(access = PROTECTED)
@@ -57,7 +60,7 @@ public class GroupPurchase extends BaseTimeEntity {
         orphanRemoval = true
     )
     @Getter(PROTECTED)
-    private List<GroupPurchaseParticipant> groupPurchaseParticipants = new ArrayList<>(); // 참여 회원
+    private List<GroupPurchaseMember> groupPurchaseMembers = new ArrayList<>(); // 참여 회원
 
     @Enumerated(EnumType.STRING)
     private Status status;                                                                // 진행 상태
@@ -113,13 +116,24 @@ public class GroupPurchase extends BaseTimeEntity {
         status = Status.CANCELLED;
     }
 
-    public void addParticipant(Long memberId, Long productStockId, Integer quantity) {
+    public void addParticipant(Long memberId, long stockId, int quantity) {
         if (!canJoin()) {
             throw new IllegalStateException("현재 참여가 불가능한 공동구매입니다.");
         }
 
-        this.groupPurchaseParticipants.add(
-            GroupPurchaseParticipant.createPurchaseParticipant(this, memberId, productStockId, quantity));
+        GroupPurchaseMember member;
+        Optional<GroupPurchaseMember> memberOptional =
+            groupPurchaseMembers.stream().filter(m -> m.getMemberId().equals(memberId))
+                .findFirst();
+
+        if (memberOptional.isPresent()) {
+            member = memberOptional.get();
+        } else {
+            member = GroupPurchaseMember.createParticipant(this, memberId);
+            groupPurchaseMembers.add(member);
+        }
+
+        member.addGroupPurchaseItem(stockId, quantity);
     }
 
     private boolean canJoin() {
@@ -131,7 +145,7 @@ public class GroupPurchase extends BaseTimeEntity {
             throw new IllegalStateException("진행 중인 공동구매가 아닙니다.");
         }
 
-        if (groupPurchaseParticipants.size() < minimumParticipants) {
+        if (groupPurchaseMembers.size() < minimumParticipants) {
             status = Status.COMPLETED_FAILURE;
         } else {
             status = Status.COMPLETED_SUCCESS;
@@ -145,7 +159,7 @@ public class GroupPurchase extends BaseTimeEntity {
     }
 
     public boolean isMinimumParticipantsMet() {
-        return groupPurchaseParticipants.size() >= minimumParticipants;
+        return groupPurchaseMembers.size() >= minimumParticipants;
     }
 
     public boolean isModifiable() {
@@ -153,60 +167,58 @@ public class GroupPurchase extends BaseTimeEntity {
     }
 
     public int getCurrentParticipants() {
-        return groupPurchaseParticipants.size();
-    }
-
-    public void removeParticipant(Long memberId) {
-        findParticipants(memberId).forEach(
-            participant -> groupPurchaseParticipants.remove(participant)
-        );
-    }
-
-    public void addOrder(Long memberId, Long stockId, int quantity) {
-        addParticipant(memberId, stockId, quantity);
-    }
-
-    public void updateOrder(Long memberId, Long stockId, int quantity) {
-        GroupPurchaseParticipant participant = findParticipant(memberId, stockId);
-        participant.setQuantity(quantity);
-    }
-
-    public void deleteOrder(Long memberId, Long stockId) {
-        GroupPurchaseParticipant participant = findParticipant(memberId, stockId);
-        groupPurchaseParticipants.remove(participant);
+        return groupPurchaseMembers.size();
     }
 
     public void wishGroupPurchase(Long memberId, boolean wish) {
+        GroupPurchaseMember member;
+        Optional<GroupPurchaseMember> memberOptional =
+            groupPurchaseMembers.stream().filter(m -> m.getMemberId().equals(memberId))
+                .findFirst();
 
-        // 즐겨찾기는 공동구매 게시물 단위로 설정함 (stock 단위 아님)
-        List<GroupPurchaseParticipant> participants = findParticipants(memberId);
+        if (memberOptional.isPresent()) {
+            member = memberOptional.get();
+            member.setWishlist(wish);
 
-        if (participants.isEmpty()) {
-            // 즐겨찾기를 위해 생성
-            GroupPurchaseParticipant participant = GroupPurchaseParticipant.createWishlistParticipant(this, memberId);
-            this.groupPurchaseParticipants.add(participant);
         } else {
-            // 이미 존재하는 참여자에 대해 즐겨찾기 설정
-            participants.forEach(participant -> {
-                participant.setWishlist(wish);
-            });
+            member = GroupPurchaseMember.createWishlistParticipant(this, memberId);
+            groupPurchaseMembers.add(member);
         }
     }
 
-    private GroupPurchaseParticipant findParticipant(Long memberId, Long productStockId) {
-        return groupPurchaseParticipants.stream()
+    public void removeParticipant(Long memberId) {
+        GroupPurchaseMember participant = findParticipant(memberId);
+        groupPurchaseMembers.remove(participant);
+    }
+
+    public void addItem(Long memberId, Long stockId, int quantity) {
+        GroupPurchaseMember participant = findParticipant(memberId);
+        participant.addGroupPurchaseItem(stockId, quantity);
+    }
+
+    public void updateItemQuantity(Long memberId, Long stockId, int quantity) {
+        GroupPurchaseMember participant = findParticipant(memberId);
+        participant.updateGroupPurchaseItem(stockId, quantity);
+    }
+
+    public void deleteOrder(Long memberId, Long stockId) {
+        GroupPurchaseMember participant = findParticipant(memberId);
+        participant.removeItem(stockId);
+
+        if (participant.getSelectedItems().isEmpty() && !participant.isWishlist()) {
+            groupPurchaseMembers.remove(participant);
+        }
+    }
+
+    private GroupPurchaseMember findParticipant(Long memberId) {
+        return groupPurchaseMembers.stream()
             .filter(participant ->
-                participant.getMemberId().equals(memberId) && participant.getProductStockId().equals(productStockId))
+                participant.getMemberId().equals(memberId))
             .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("해당 참여자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new EntityNotFoundException(
+                TargetEntity.GROUP_PURCHASE_MEMBER,
+                String.format("memberId가 %d인 공동구매 참여자가 존재하지 않습니다.", memberId)
+            ));
     }
-
-    private List<GroupPurchaseParticipant> findParticipants(Long memberId) {
-        return groupPurchaseParticipants.stream()
-            .filter(participant -> participant.getMemberId().equals(memberId))
-            .toList();
-    }
-
-
 
 }

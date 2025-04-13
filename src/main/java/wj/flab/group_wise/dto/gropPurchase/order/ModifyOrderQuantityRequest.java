@@ -8,6 +8,6 @@ public record ModifyOrderQuantityRequest(Long productStockId, Integer quantity) 
 
     @Override
     public void execute(GroupPurchase groupPurchase, Long memberId) {
-        groupPurchase.updateOrder(memberId, productStockId, quantity);
+        groupPurchase.updateItemQuantity(memberId, productStockId, quantity);
     }
 }

@@ -10,7 +10,9 @@ public enum TargetEntity {
     PRODUCT_ATTRIBUTE("상품 속성"),
     PRODUCT_ATTRIBUTE_VALUE("상품 속성 값"),
     PRODUCT_STOCK("상품 재고"),
-    GROUP_PURCHASE("공동구매");
+    GROUP_PURCHASE("공동구매"),
+    GROUP_PURCHASE_MEMBER("공동구매 참여자"),
+    GROUP_PURCHASE_ITEM("공동구매 상품");
 
     private final String name;
 }

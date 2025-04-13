@@ -60,6 +60,10 @@ dependencies {
 	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
 }
 
+compileJava {
+	options.compilerArgs << '-parameters'
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
 }
