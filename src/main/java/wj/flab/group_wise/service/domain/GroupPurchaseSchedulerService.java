@@ -28,9 +28,8 @@ public class GroupPurchaseSchedulerService {
             .findByStatusAndEndDateBefore(Status.ONGOING, now);
 
         for (GroupPurchase groupPurchase : expiredGroupPurchases) {
-            Status newStatus = groupPurchase.complete(); // 현재 상태 변경 로직이 이미 있음
+            Status newStatus = groupPurchase.complete();
 
-            // 이벤트 발행
             if (newStatus == Status.COMPLETED_SUCCESS) {
                 eventPublisher.publishSuccessEvent(new GroupPurchaseSuccessEvent(this, groupPurchase));
             } else if (newStatus == Status.COMPLETED_FAILURE) {

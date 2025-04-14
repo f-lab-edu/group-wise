@@ -151,10 +151,7 @@ public class GroupPurchase extends BaseTimeEntity {
             status = Status.COMPLETED_SUCCESS;
         }
 
-        // todo 완료 이벤트 발생
-        // - 참여자에게 알림
-        // - 성공시 주문 객체 생성
-
+        // todo 성공시 주문 객체 생성
         return status;
     }
 
