@@ -10,6 +10,7 @@ import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase.Status;
 import wj.flab.group_wise.domain.groupPurchase.command.GroupPurchaseOrderModifyCommand;
 import wj.flab.group_wise.domain.groupPurchase.event.GroupPurchaseStartedEvent;
+import wj.flab.group_wise.domain.groupPurchase.event.MinimumParticipantsMetEvent;
 import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
 import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseCreateRequest;
@@ -77,15 +78,15 @@ public class GroupPurchaseService {
         GroupPurchase groupPurchase = findGroupPurchase(groupPurchaseId);
         groupPurchase.start();
 
-
+        groupPurchaseEventPublisher.publishStartEvent(
+            new GroupPurchaseStartedEvent(this, groupPurchase));
     }
 
     public void cancelGroupPurchase(Long groupPurchaseId) {
         GroupPurchase groupPurchase = findGroupPurchase(groupPurchaseId);
         groupPurchase.cancel();
 
-        groupPurchaseEventPublisher.publishStartEvent(
-            new GroupPurchaseStartedEvent(this, groupPurchase));
+        // todo 추후 참여자에게 알림 기능 구현하기
     }
 
     public void joinGroupPurchase(Long groupPurchaseId, Long memberId, List<GroupPurchaseJoinRequest> joinRequests) {
@@ -100,7 +101,11 @@ public class GroupPurchaseService {
             groupPurchase.addParticipant(memberId, stockId, quantity);
         }
 
-        // todo 추후 참여자에게 최소 인원 달성 알림 기능 구현하기
+        if (groupPurchase.isMinimumParticipantsMet()) {
+            groupPurchaseEventPublisher.publishMinimumParticipantsMetEvent(
+                new MinimumParticipantsMetEvent(this, groupPurchase)
+            );
+        }
     }
 
     public void modifyOrder(Long groupPurchaseId, Long memberId,
@@ -115,12 +120,12 @@ public class GroupPurchaseService {
     public void leaveGroupPurchase(Long groupPurchaseId, Long memberId) {
         GroupPurchase groupPurchase = findGroupPurchase(groupPurchaseId);
         groupPurchase.removeParticipant(memberId);
+
         // todo 추후 참여자에게 알림 기능 구현하기
     }
 
     public void wishGroupPurchase(Long groupPurchaseId, Long memberId, boolean wish) {
         GroupPurchase groupPurchase = findGroupPurchase(groupPurchaseId);
         groupPurchase.wishGroupPurchase(memberId, wish);
-
     }
 }
