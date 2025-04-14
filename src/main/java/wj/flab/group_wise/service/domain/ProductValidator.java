@@ -1,4 +1,4 @@
-package wj.flab.group_wise.service;
+package wj.flab.group_wise.service.domain;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package wj.flab.group_wise.service;
+package wj.flab.group_wise.service.domain;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -8,13 +8,15 @@ import wj.flab.group_wise.domain.exception.EntityNotFoundException;
 import wj.flab.group_wise.domain.exception.TargetEntity;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase.Status;
+import wj.flab.group_wise.domain.groupPurchase.command.GroupPurchaseOrderModifyCommand;
+import wj.flab.group_wise.domain.groupPurchase.event.GroupPurchaseStartedEvent;
 import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCreateRequest;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseJoinRequest;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseUpdateRequest;
-import wj.flab.group_wise.domain.groupPurchase.command.GroupPurchaseOrderModifyCommand;
+import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseCreateRequest;
+import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseJoinRequest;
+import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseUpdateRequest;
 import wj.flab.group_wise.repository.GroupPurchaseRepository;
+import wj.flab.group_wise.service.event.GroupPurchaseEventPublisher;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +25,7 @@ public class GroupPurchaseService {
 
     private final ProductService productService;
     private final GroupPurchaseRepository groupPurchaseRepository;
+    private final GroupPurchaseEventPublisher groupPurchaseEventPublisher;
 
     public Long createGroupPurchase(GroupPurchaseCreateRequest groupCreateRequest) {
         Long productId = groupCreateRequest.productId();
@@ -73,13 +76,16 @@ public class GroupPurchaseService {
     public void startGroupPurchase(Long groupPurchaseId) {
         GroupPurchase groupPurchase = findGroupPurchase(groupPurchaseId);
         groupPurchase.start();
+
+
     }
 
     public void cancelGroupPurchase(Long groupPurchaseId) {
         GroupPurchase groupPurchase = findGroupPurchase(groupPurchaseId);
         groupPurchase.cancel();
 
-        // todo 추후 참여자에게 알림 기능 구현하기
+        groupPurchaseEventPublisher.publishStartEvent(
+            new GroupPurchaseStartedEvent(this, groupPurchase));
     }
 
     public void joinGroupPurchase(Long groupPurchaseId, Long memberId, List<GroupPurchaseJoinRequest> joinRequests) {

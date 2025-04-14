@@ -13,11 +13,14 @@ import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
 import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
 import wj.flab.group_wise.domain.product.ProductStock;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCreateRequest;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseJoinRequest;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseUpdateRequest;
+import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseCreateRequest;
+import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseJoinRequest;
+import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseUpdateRequest;
 import wj.flab.group_wise.dto.member.MemberCreateRequest;
 import wj.flab.group_wise.dto.product.request.ProductStockSetRequest;
+import wj.flab.group_wise.service.domain.GroupPurchaseService;
+import wj.flab.group_wise.service.domain.MemberService;
+import wj.flab.group_wise.service.domain.ProductService;
 
 @SpringBootTest
 @ActiveProfiles("test")

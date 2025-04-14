@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import wj.flab.group_wise.domain.Member;
 import wj.flab.group_wise.dto.member.MemberResponse;
-import wj.flab.group_wise.service.MemberService;
+import wj.flab.group_wise.service.domain.MemberService;
 
 @RestController
 @RequestMapping("/api/members")

@@ -1,4 +1,4 @@
-package wj.flab.group_wise.dto.gropPurchase;
+package wj.flab.group_wise.dto.groupPurchase;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

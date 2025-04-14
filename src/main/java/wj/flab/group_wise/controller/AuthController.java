@@ -13,7 +13,7 @@ import wj.flab.group_wise.dto.CreateResponse;
 import wj.flab.group_wise.dto.JwtResponse;
 import wj.flab.group_wise.dto.member.MemberCreateRequest;
 import wj.flab.group_wise.dto.member.MemberLoginRequest;
-import wj.flab.group_wise.service.MemberService;
+import wj.flab.group_wise.service.domain.MemberService;
 
 @RestController
 @RequestMapping("/api/auth")

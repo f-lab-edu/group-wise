@@ -17,14 +17,14 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
 import wj.flab.group_wise.domain.groupPurchase.command.GroupPurchaseOrderModifyCommand;
 import wj.flab.group_wise.dto.CreateResponse;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseCreateRequest;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseJoinRequest;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseUpdateRequest;
-import wj.flab.group_wise.dto.gropPurchase.GroupPurchaseWishRequest;
-import wj.flab.group_wise.dto.gropPurchase.order.AddOrderRequest;
-import wj.flab.group_wise.dto.gropPurchase.order.DeleteOrderRequest;
-import wj.flab.group_wise.dto.gropPurchase.order.ModifyOrderQuantityRequest;
-import wj.flab.group_wise.service.GroupPurchaseService;
+import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseCreateRequest;
+import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseJoinRequest;
+import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseUpdateRequest;
+import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseWishRequest;
+import wj.flab.group_wise.dto.groupPurchase.order.AddOrderRequest;
+import wj.flab.group_wise.dto.groupPurchase.order.DeleteOrderRequest;
+import wj.flab.group_wise.dto.groupPurchase.order.ModifyOrderQuantityRequest;
+import wj.flab.group_wise.service.domain.GroupPurchaseService;
 
 @RestController
 @RequestMapping("/api/group-purchases")

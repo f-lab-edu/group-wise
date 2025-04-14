@@ -221,4 +221,18 @@ public class GroupPurchase extends BaseTimeEntity {
             ));
     }
 
+    public List<Long> getParticipantIds() {
+        return groupPurchaseMembers.stream()
+            .filter(GroupPurchaseMember::isHasParticipated)
+            .map(GroupPurchaseMember::getMemberId)
+            .toList();
+    }
+
+    public List<Long> getWishlistIds() {
+        return groupPurchaseMembers.stream()
+            .filter(GroupPurchaseMember::isWishlist)
+            .map(GroupPurchaseMember::getMemberId)
+            .toList();
+    }
+
 }

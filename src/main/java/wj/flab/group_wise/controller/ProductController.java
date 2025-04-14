@@ -16,7 +16,7 @@ import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest;
 import wj.flab.group_wise.dto.product.request.ProductStockAddRequest;
 import wj.flab.group_wise.dto.product.request.ProductStockSetRequest;
 import wj.flab.group_wise.dto.product.response.ProductViewResponse;
-import wj.flab.group_wise.service.ProductService;
+import wj.flab.group_wise.service.domain.ProductService;
 
 @RestController
 @RequestMapping("/api/v1/products")
