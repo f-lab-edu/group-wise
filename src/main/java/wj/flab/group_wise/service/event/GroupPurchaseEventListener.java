@@ -9,6 +9,7 @@ import wj.flab.group_wise.domain.groupPurchase.event.GroupPurchaseStartedEvent;
 import wj.flab.group_wise.domain.groupPurchase.event.GroupPurchaseSuccessEvent;
 import wj.flab.group_wise.domain.groupPurchase.event.MinimumParticipantsMetEvent;
 import wj.flab.group_wise.domain.groupPurchase.event.MinimumParticipantsUnmetEvent;
+import wj.flab.group_wise.service.domain.NotificationService;
 
 @Component
 @RequiredArgsConstructor

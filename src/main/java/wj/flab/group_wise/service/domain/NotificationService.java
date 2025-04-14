@@ -1,10 +1,9 @@
-package wj.flab.group_wise.service.event;
+package wj.flab.group_wise.service.domain;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import wj.flab.group_wise.domain.Member;
-import wj.flab.group_wise.service.domain.MemberService;
 
 @Service
 @RequiredArgsConstructor
