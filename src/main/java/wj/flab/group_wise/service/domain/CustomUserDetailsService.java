@@ -22,9 +22,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Member member = memberRepository.findByUsername(username) // Member로 변경
-            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Member member = memberRepository.findByEmail(email) // Member로 변경
+            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
         // 모든 사용자에게 "ROLE_USER" 권한 부여
         List<GrantedAuthority> authorities = Collections.singletonList(
@@ -32,7 +32,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         );
 
         return new org.springframework.security.core.userdetails.User(
-            member.getUsername(),
+            member.getEmail(),
             member.getPassword(),
             authorities
         );

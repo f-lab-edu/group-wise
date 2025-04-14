@@ -18,17 +18,17 @@ public class Member extends BaseTimeEntity {
     private Long id;
 
     @Column(unique = true)
-    private String username;
+    private String email; // email 로 변경하자
     private String password;
     private String address;
 
-    public Member(String username, String password) {
-        this.username = username;
+    public Member(String email, String password) {
+        this.email = email;
         this.password = password;
     }
 
-    public Member(String username, String password, String address) {
-        this.username = username;
+    public Member(String email, String password, String address) {
+        this.email = email;
         this.password = password;
         this.address = address;
     }

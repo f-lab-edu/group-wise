@@ -3,6 +3,8 @@ package wj.flab.group_wise.domain;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.AccessLevel;
@@ -25,6 +27,8 @@ public class Notification extends BaseTimeEntity {
 
     private String title;
     private String message;
+
+    @Enumerated(EnumType.STRING)
     private NotificationType notificationType;
 
     private boolean isRead;
