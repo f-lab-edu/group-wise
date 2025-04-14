@@ -1,49 +1,29 @@
 package wj.flab.group_wise.service.domain;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import wj.flab.group_wise.domain.Member;
+import wj.flab.group_wise.domain.Notification;
+import wj.flab.group_wise.repository.NotificationRepository;
 
+@Slf4j
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class NotificationService {
 
     private final MemberService memberService;
+    private final NotificationRepository notificationRepository;
 //    private final EmailService emailService;
-//    private final SMSService smsService;
 
-    public void notifyMembers(List<Long> memberIds, String title, String message) {
-        memberIds.forEach(memberId -> notifyMember(memberId, title, message));
+    public void notify(Notification notification) {
+        String title = notification.getTitle();
+        String message = notification.getMessage();
+        Member member = memberService.findMember(notification.getMemberId());
+
+//            emailService.sendEmail(member.getEmail(), title, message);
+        notificationRepository.save(notification);
     }
-
-    public void notifyMember(Long memberId, String title, String message) {
-        Member member = memberService.findMember(memberId);
-
-//        // 이메일 알림
-//        emailService.sendEmail(member.getEmail(), title, message);
-//
-//        // SMS 알림 (전화번호가 있는 경우)
-//        if (member.getPhoneNumber() != null) {
-//            smsService.sendSMS(member.getPhoneNumber(), message);
-//        }
-
-        // 웹 알림 저장 (사용자가 웹사이트에 접속했을 때 보여줄 알림)
-//        saveWebNotification(member, title, message, groupPurchase.getId());
-
-    }
-
-
-//    private void saveWebNotification(Member member, String title, String message, Long groupPurchaseId) {
-//        // 데이터베이스에 알림 정보 저장
-//        Notification notification = new Notification();
-//        notification.setMember(member);
-//        notification.setTitle(title);
-//        notification.setMessage(message);
-//        notification.setGroupPurchaseId(groupPurchaseId);
-//        notification.setCreatedAt(LocalDateTime.now());
-//        notification.setRead(false);
-//
-//        notificationRepository.save(notification);
-//    }
 }
