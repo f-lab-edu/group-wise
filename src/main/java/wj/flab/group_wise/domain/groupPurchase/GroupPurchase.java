@@ -151,10 +151,7 @@ public class GroupPurchase extends BaseTimeEntity {
             status = Status.COMPLETED_SUCCESS;
         }
 
-        // todo 완료 이벤트 발생
-        // - 참여자에게 알림
-        // - 성공시 주문 객체 생성
-
+        // todo 성공시 주문 객체 생성
         return status;
     }
 
@@ -219,6 +216,20 @@ public class GroupPurchase extends BaseTimeEntity {
                 TargetEntity.GROUP_PURCHASE_MEMBER,
                 String.format("memberId가 %d인 공동구매 참여자가 존재하지 않습니다.", memberId)
             ));
+    }
+
+    public List<Long> getParticipantIds() {
+        return groupPurchaseMembers.stream()
+            .filter(GroupPurchaseMember::isHasParticipated)
+            .map(GroupPurchaseMember::getMemberId)
+            .toList();
+    }
+
+    public List<Long> getWishlistIds() {
+        return groupPurchaseMembers.stream()
+            .filter(GroupPurchaseMember::isWishlist)
+            .map(GroupPurchaseMember::getMemberId)
+            .toList();
     }
 
 }

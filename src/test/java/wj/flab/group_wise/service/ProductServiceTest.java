@@ -23,6 +23,7 @@ import wj.flab.group_wise.dto.product.request.ProductStockAddRequest.StockAddReq
 import wj.flab.group_wise.dto.product.request.ProductStockSetRequest;
 import wj.flab.group_wise.dto.product.response.ProductViewResponse;
 import wj.flab.group_wise.repository.ProductRepository;
+import wj.flab.group_wise.service.domain.ProductService;
 
 @SpringBootTest
 @ActiveProfiles("test")

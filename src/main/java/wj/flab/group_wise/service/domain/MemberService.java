@@ -1,4 +1,4 @@
-package wj.flab.group_wise.service;
+package wj.flab.group_wise.service.domain;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -39,13 +39,13 @@ public class MemberService {
 
     public Long registerMember(MemberCreateRequest memberCreateRequest) {
 
-        if (memberRepository.existsByUsername(memberCreateRequest.username())) {
+        if (memberRepository.existsByEmail(memberCreateRequest.email())) {
             throw new AlreadyExistsException(TargetEntity.MEMBER,
-                memberCreateRequest.username() + "는 이미 존재하는 사용자입니다.");
+                memberCreateRequest.email() + "는 이미 존재하는 사용자입니다.");
         }
 
         Member member = new Member(
-            memberCreateRequest.username(),
+            memberCreateRequest.email(),
             passwordEncoder.encode(memberCreateRequest.password()),
             memberCreateRequest.address()
         );
@@ -58,7 +58,7 @@ public class MemberService {
         try {
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                    memberLoginRequest.username(),
+                    memberLoginRequest.email(),
                     memberLoginRequest.password()
                 )
             );

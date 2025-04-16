@@ -1,4 +1,4 @@
-package wj.flab.group_wise.dto.gropPurchase;
+package wj.flab.group_wise.dto.groupPurchase;
 
 import java.time.LocalDateTime;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
