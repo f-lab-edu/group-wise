@@ -2,13 +2,13 @@ package wj.flab.group_wise.domain;
 
 import static jakarta.persistence.GenerationType.IDENTITY;
 
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,12 +39,14 @@ public class Notification extends BaseTimeEntity {
     private NotificationType notificationType;
 
     private boolean isRead;
-    private String deliveredChannels;
+
+    @Convert(converter = DeliveryChannelSetConverter.class)
+    private Set<DeliveryChannel> deliveredChannels;
 
     public Notification(
         Long groupPurchaseId, NotificationType notificationType,
         String title, String message,
-        Long memberId, DeliveryChannel... deliveredChannels) {
+        Long memberId, Set<DeliveryChannel> deliveredChannels) {
 
         this.groupPurchaseId = groupPurchaseId;
         this.notificationType = notificationType;
@@ -52,10 +54,6 @@ public class Notification extends BaseTimeEntity {
         this.message = message;
         this.memberId = memberId;
         this.isRead = false;
-        this.deliveredChannels = deliveredChannels != null && deliveredChannels.length > 0
-            ? Arrays.stream(deliveredChannels)
-            .map(DeliveryChannel::name)
-            .collect(Collectors.joining(","))
-            : DeliveryChannel.EMAIL.name();
+        this.deliveredChannels = deliveredChannels;
     }
 }

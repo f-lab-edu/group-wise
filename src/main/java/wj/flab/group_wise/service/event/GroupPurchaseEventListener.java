@@ -1,9 +1,11 @@
 package wj.flab.group_wise.service.event;
 
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import wj.flab.group_wise.domain.Notification;
+import wj.flab.group_wise.domain.Notification.DeliveryChannel;
 import wj.flab.group_wise.domain.Notification.NotificationType;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
 import wj.flab.group_wise.domain.groupPurchase.event.GroupPurchaseFailureEvent;
@@ -30,7 +32,8 @@ public class GroupPurchaseEventListener {
                     NotificationType.START,
                     "관심 공동구매 시작",
                     "공동구매 '" + groupPurchase.getTitle() + "' 진행이 시작되었습니다.",
-                    wishlistId
+                    wishlistId,
+                    Set.of(DeliveryChannel.EMAIL)
                 )
             )
         );
@@ -51,7 +54,8 @@ public class GroupPurchaseEventListener {
                     notificationType,
                     title,
                     message,
-                    participantId
+                    participantId,
+                    Set.of(DeliveryChannel.EMAIL)
                 )
             )
         );
@@ -63,7 +67,8 @@ public class GroupPurchaseEventListener {
                     notificationType,
                     "관심" + title,
                     message,
-                    wishlistId
+                    wishlistId,
+                    Set.of(DeliveryChannel.EMAIL)
                 )
             )
         );
@@ -88,7 +93,8 @@ public class GroupPurchaseEventListener {
                     notificationType,
                     "공동구매 성공",
                     "참여하신 '" + groupPurchase.getTitle() + "' 공동구매가 성공적으로 완료되었습니다.",
-                    participantId
+                    participantId,
+                    Set.of(DeliveryChannel.EMAIL)
                 )
             )
         );
@@ -100,7 +106,8 @@ public class GroupPurchaseEventListener {
                     notificationType,
                     "관심 " + "공동구매 성공",
                     "관심 목록에 있는 '" + groupPurchase.getTitle() + "' 공동구매가 성공적으로 종료되었습니다.",
-                    wishlistId
+                    wishlistId,
+                    Set.of(DeliveryChannel.EMAIL)
                 )
             )
         );
@@ -121,7 +128,8 @@ public class GroupPurchaseEventListener {
                     notificationType,
                     "공동구매 실패",
                     "참여하신 '" + groupPurchase.getTitle() + "' 공동구매가 최소 인원을 충족하지 못해 취소되었습니다.",
-                    participantId
+                    participantId,
+                    Set.of(DeliveryChannel.EMAIL)
                 )
             )
         );
@@ -133,7 +141,8 @@ public class GroupPurchaseEventListener {
                     notificationType,
                     "관심 공동구매 종료",
                     "관심 목록에 있는 '" + groupPurchase.getTitle() + "' 공동구매가 최소 인원을 충족하지 못해 취소되었습니다.",
-                    wishlistId
+                    wishlistId,
+                    Set.of(DeliveryChannel.EMAIL)
                 )
             )
         );
