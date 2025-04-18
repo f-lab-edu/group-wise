@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
 import wj.flab.group_wise.domain.groupPurchase.command.GroupPurchaseOrderModifyCommand;
 import wj.flab.group_wise.dto.CreateResponse;
 import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseCreateRequest;
@@ -24,6 +23,7 @@ import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseWishRequest;
 import wj.flab.group_wise.dto.groupPurchase.order.AddOrderRequest;
 import wj.flab.group_wise.dto.groupPurchase.order.DeleteOrderRequest;
 import wj.flab.group_wise.dto.groupPurchase.order.ModifyOrderQuantityRequest;
+import wj.flab.group_wise.dto.groupPurchase.response.GroupPurchaseDetailResponse;
 import wj.flab.group_wise.service.domain.GroupPurchaseService;
 
 @RestController
@@ -35,9 +35,9 @@ public class GroupPurchaseController {
     private final GroupPurchaseService groupPurchaseService;
 
     @GetMapping("/{groupPurchaseId}")
-    public ResponseEntity<GroupPurchase> getGroupPurchase(@PathVariable Long groupPurchaseId) {
-        GroupPurchase groupPurchase = groupPurchaseService.findGroupPurchase(groupPurchaseId);
-        return ResponseEntity.ok(groupPurchase);
+    public ResponseEntity<GroupPurchaseDetailResponse> getGroupPurchase(@PathVariable Long groupPurchaseId) {
+        GroupPurchaseDetailResponse groupPurchaseDetail = groupPurchaseService.getGroupPurchaseDetail(groupPurchaseId);
+        return ResponseEntity.ok(groupPurchaseDetail);
     }
 
     @PostMapping

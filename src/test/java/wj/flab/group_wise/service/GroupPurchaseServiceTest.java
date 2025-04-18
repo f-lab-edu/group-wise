@@ -15,9 +15,11 @@ import wj.flab.group_wise.domain.product.Product.SaleStatus;
 import wj.flab.group_wise.domain.product.ProductStock;
 import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseCreateRequest;
 import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseJoinRequest;
+import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseStats;
 import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseUpdateRequest;
 import wj.flab.group_wise.dto.member.MemberCreateRequest;
 import wj.flab.group_wise.dto.product.request.ProductStockSetRequest;
+import wj.flab.group_wise.repository.GroupPurchaseRepository;
 import wj.flab.group_wise.service.domain.GroupPurchaseService;
 import wj.flab.group_wise.service.domain.MemberService;
 import wj.flab.group_wise.service.domain.ProductService;
@@ -32,6 +34,9 @@ class GroupPurchaseServiceTest {
 
     @Autowired
     private ProductService productService;
+
+    @Autowired
+    private GroupPurchaseRepository groupPurchaseRepository;
 
     @Autowired
     private ProductDomainDtoCreator productDomainDtoCreator;
@@ -131,7 +136,8 @@ class GroupPurchaseServiceTest {
 
         // then : 공동구매 참여 확인
         GroupPurchase groupPurchase = groupPurchaseService.findGroupPurchase(groupPurchaseId);
-        Assertions.assertThat(groupPurchase.getCurrentParticipants()).isEqualTo(1);
+        GroupPurchaseStats stats = groupPurchaseRepository.getGroupPurchaseStats(groupPurchaseId);
+        Assertions.assertThat(stats.participantCount()).isEqualTo(1);
     }
 
     private Long setAndGetProductId() {

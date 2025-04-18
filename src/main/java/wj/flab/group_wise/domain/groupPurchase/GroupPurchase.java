@@ -163,10 +163,6 @@ public class GroupPurchase extends BaseTimeEntity {
         return status == Status.PENDING;
     }
 
-    public int getCurrentParticipants() {
-        return groupPurchaseMembers.size();
-    }
-
     public void wishGroupPurchase(Long memberId, boolean wish) {
         GroupPurchaseMember member;
         Optional<GroupPurchaseMember> memberOptional =
@@ -232,4 +228,11 @@ public class GroupPurchase extends BaseTimeEntity {
             .toList();
     }
 
+    public Long getStockParticipantCount(Long stockId) {
+        return groupPurchaseMembers.stream()
+            .filter(GroupPurchaseMember::isHasParticipated)
+            .flatMap(member ->
+                member.getSelectedItems().stream().filter(item -> item.getProductStockId().equals(stockId) ))
+            .count();
+    }
 }
