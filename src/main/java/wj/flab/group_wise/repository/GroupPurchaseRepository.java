@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase.Status;
-import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseStats;
+import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseStats;
 
 @Repository
 public interface GroupPurchaseRepository extends JpaRepository<GroupPurchase, Long> {

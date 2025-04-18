@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase.Status;
 import wj.flab.group_wise.domain.product.ProductStock;
 import wj.flab.group_wise.domain.product.ProductViewResponseMapper;
-import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseStats;
+import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseStats;
 import wj.flab.group_wise.dto.groupPurchase.response.GroupPurchaseDetailResponse;
 import wj.flab.group_wise.dto.groupPurchase.response.GroupPurchaseDetailResponse.GroupPurchaseStockResponse;
 import wj.flab.group_wise.dto.product.response.ProductStockResponse;

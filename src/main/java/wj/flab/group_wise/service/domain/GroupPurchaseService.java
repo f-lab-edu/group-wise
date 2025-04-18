@@ -15,10 +15,10 @@ import wj.flab.group_wise.domain.groupPurchase.event.MinimumParticipantsMetEvent
 import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
 import wj.flab.group_wise.domain.product.ProductViewResponseMapper;
-import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseCreateRequest;
-import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseJoinRequest;
-import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseStats;
-import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseUpdateRequest;
+import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseCreateRequest;
+import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseJoinRequest;
+import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseStats;
+import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseUpdateRequest;
 import wj.flab.group_wise.dto.groupPurchase.response.GroupPurchaseDetailResponse;
 import wj.flab.group_wise.dto.product.response.ProductViewResponse;
 import wj.flab.group_wise.repository.GroupPurchaseRepository;
