@@ -1,7 +1,13 @@
 package wj.flab.group_wise.service.domain;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
@@ -15,11 +21,13 @@ import wj.flab.group_wise.domain.groupPurchase.event.MinimumParticipantsMetEvent
 import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.Product.SaleStatus;
 import wj.flab.group_wise.domain.product.ProductViewResponseMapper;
-import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseCreateRequest;
-import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseJoinRequest;
-import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseStats;
-import wj.flab.group_wise.dto.groupPurchase.GroupPurchaseUpdateRequest;
+import wj.flab.group_wise.dto.SortDirection;
+import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseCreateRequest;
+import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseJoinRequest;
+import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseSearchRequest;
+import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseUpdateRequest;
 import wj.flab.group_wise.dto.groupPurchase.response.GroupPurchaseDetailResponse;
+import wj.flab.group_wise.dto.groupPurchase.response.GroupPurchaseSummaryResponse;
 import wj.flab.group_wise.dto.product.response.ProductViewResponse;
 import wj.flab.group_wise.repository.GroupPurchaseRepository;
 import wj.flab.group_wise.service.event.GroupPurchaseEventPublisher;
@@ -38,18 +46,16 @@ public class GroupPurchaseService {
     @Transactional(readOnly = true)
     public GroupPurchaseDetailResponse getGroupPurchaseDetail(Long groupPurchaseId) {
         GroupPurchase groupPurchase = findGroupPurchase(groupPurchaseId);
-        GroupPurchaseStats stats = groupPurchaseRepository.getGroupPurchaseStats(groupPurchaseId);
         Product product = productService.findProductById(groupPurchase.getProductId());
 
         // 기본정보 매핑
-        GroupPurchaseDetailResponse baseResponse = groupPurchaseMapper.mapToBaseResponse(groupPurchase, stats);
+        GroupPurchaseDetailResponse baseResponse = groupPurchaseMapper.mapToBaseResponse(groupPurchase);
 
         // 추가정보 - 상품
         ProductViewResponse productResponse = productMapper.mapToProductViewResponse(product);
 
         // 추가정보 - 공동구매 시작가
-        int cheapestStockPrice = productService.getCheapestStockPrice(product.getId());
-        int discountedPrice = calculateDiscountedPrice(cheapestStockPrice, groupPurchase.getDiscountRate());
+        int discountedPrice = getMinPriceOfGroupPurchase(product.getId(), groupPurchase);
 
         // 추가정보 - 상품 옵션
         List<GroupPurchaseDetailResponse.GroupPurchaseStockResponse> groupPurchaseStockResponses
@@ -59,8 +65,102 @@ public class GroupPurchaseService {
         return baseResponse.withInfo(productResponse, discountedPrice, groupPurchaseStockResponses);
     }
 
+    private int getMinPriceOfGroupPurchase(Long productId, GroupPurchase groupPurchase) {
+        int cheapestStockPrice = productService.getCheapestStockPrice(productId);
+        return calculateDiscountedPrice(cheapestStockPrice, groupPurchase.getDiscountRate());
+    }
+
     private int calculateDiscountedPrice(int originalPrice, int discountRate) {
         return originalPrice - (originalPrice * discountRate / 100);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<GroupPurchaseSummaryResponse> searchGroupPurchases(GroupPurchaseSearchRequest searchRequest) {
+        List<GroupPurchase> groupPurchases = groupPurchaseRepository.searchGroupPurchases(searchRequest);
+
+        // 복잡한 정렬 조건은 애플리케이션에서 처리
+        if (searchRequest.sortBy() != null) {
+            switch (searchRequest.sortBy()) {
+                case REMAINING_TIME:
+                    sortByRemainingTime(groupPurchases, searchRequest.sortDirection());
+                    break;
+                case PARTICIPANT_COUNT:
+                    sortByParticipantCount(groupPurchases, searchRequest.sortDirection());
+                    break;
+                case PARTICIPATION_RATE:
+                    sortByParticipationRate(groupPurchases, searchRequest.sortDirection());
+                    break;
+                case CHEAPEST_PRICE:
+                    sortByCheapestPrice(groupPurchases, searchRequest.sortDirection());
+            }
+        }
+
+        List<GroupPurchaseSummaryResponse> allResults = groupPurchases.stream()
+            .map(groupPurchase -> {
+                Long productId = groupPurchase.getProductId();
+                int minPriceOfGroupPurchase = getMinPriceOfGroupPurchase(productId, groupPurchase); // 공동구매 시작가 todo 엔티티 필드에 추가 고려
+                Product product = productService.findProductById(productId);
+
+                return groupPurchaseMapper.mapToSummaryResponse(groupPurchase, product, minPriceOfGroupPurchase);
+            })
+            .toList();
+
+        return PageableExecutionUtils.getPage(
+            allResults,
+            PageRequest.of(searchRequest.page(), searchRequest.size()),
+            allResults::size);
+    }
+
+    private void sortByCheapestPrice(List<GroupPurchase> allResults, SortDirection sortDirection) {
+        Comparator<GroupPurchase> comparator = Comparator.comparing(
+            gp -> productService.getCheapestStockPrice(gp.getProductId())
+        );
+
+        if (sortDirection == SortDirection.DESC) {
+            comparator = comparator.reversed();
+        }
+
+        allResults.sort(comparator);
+    }
+
+    private void sortByRemainingTime(List<GroupPurchase> results, SortDirection direction) {
+        LocalDateTime now = LocalDateTime.now();
+
+        Comparator<GroupPurchase> comparator = Comparator.comparing(
+            gp -> Duration.between(now, gp.getEndDate()).getSeconds()
+        );
+
+        if (direction == SortDirection.DESC) {
+            comparator = comparator.reversed();
+        }
+
+        results.sort(comparator);
+    }
+
+    // 참여자 수로 정렬
+    private void sortByParticipantCount(List<GroupPurchase> results, SortDirection direction) {
+        Comparator<GroupPurchase> comparator = Comparator.comparing(
+            GroupPurchase::getCurrentParticipantCount
+        );
+
+        if (direction == SortDirection.DESC) {
+            comparator = comparator.reversed();
+        }
+
+        results.sort(comparator);
+    }
+
+    // 참여율로 정렬
+    private void sortByParticipationRate(List<GroupPurchase> results, SortDirection direction) {
+        Comparator<GroupPurchase> comparator = Comparator.comparing(
+            GroupPurchase::getParticipationRate
+        );
+
+        if (direction == SortDirection.DESC) {
+            comparator = comparator.reversed();
+        }
+
+        results.sort(comparator);
     }
 
     public Long createGroupPurchase(GroupPurchaseCreateRequest groupCreateRequest) {

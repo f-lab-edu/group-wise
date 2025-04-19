@@ -1,4 +1,4 @@
-package wj.flab.group_wise.dto.groupPurchase.order;
+package wj.flab.group_wise.dto.groupPurchase.request.order;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;

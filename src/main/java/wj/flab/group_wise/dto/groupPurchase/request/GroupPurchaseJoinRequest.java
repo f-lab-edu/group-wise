@@ -1,4 +1,4 @@
-package wj.flab.group_wise.dto.groupPurchase;
+package wj.flab.group_wise.dto.groupPurchase.request;
 
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Range;

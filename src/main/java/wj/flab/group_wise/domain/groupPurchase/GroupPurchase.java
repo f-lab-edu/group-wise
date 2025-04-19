@@ -11,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -235,4 +236,34 @@ public class GroupPurchase extends BaseTimeEntity {
                 member.getSelectedItems().stream().filter(item -> item.getProductStockId().equals(stockId) ))
             .count();
     }
+
+    public Duration getRemainingTime() {
+        Status status = getStatus();
+        if (status == Status.ONGOING) {
+            return Duration.between(LocalDateTime.now(), getEndDate());
+        } else if (status == Status.PENDING) {
+            return Duration.between(LocalDateTime.now(), getStartDate());
+        } else {
+            return Duration.ZERO;
+        }
+    }
+
+    public double getParticipationRate() {
+        return (double) getCurrentParticipantCount() / minimumParticipants * 100;
+    }
+
+    public long getCurrentParticipantCount() {
+        return groupPurchaseMembers.stream()
+            .filter(GroupPurchaseMember::isHasParticipated)
+            .count();
+    }
+
+    public long getWishlistCount() {
+        return groupPurchaseMembers.stream()
+            .filter(GroupPurchaseMember::isWishlist)
+            .count();
+    }
+
+
+
 }
