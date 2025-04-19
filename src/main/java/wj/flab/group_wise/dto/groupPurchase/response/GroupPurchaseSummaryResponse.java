@@ -12,14 +12,12 @@ public record GroupPurchaseSummaryResponse (
     GroupPurchase.Status status,
     int discountRate,
     int cheapestPrice,
-    long productStockCount,
+    int productStockCount,
     int minimumParticipants,
-    int currentParticipantCount,
-    int participationRate,
+    long currentParticipantCount,
+    double participationRate,
     long wishlistCount,
     LocalDateTime startDate,
     LocalDateTime endDate,
     Duration remainingTime
-){
-
-}
+){}

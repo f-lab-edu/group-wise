@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,12 +19,14 @@ import wj.flab.group_wise.domain.groupPurchase.command.GroupPurchaseOrderModifyC
 import wj.flab.group_wise.dto.CreateResponse;
 import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseCreateRequest;
 import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseJoinRequest;
+import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseSearchRequest;
 import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseUpdateRequest;
 import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseWishRequest;
 import wj.flab.group_wise.dto.groupPurchase.request.order.AddOrderRequest;
 import wj.flab.group_wise.dto.groupPurchase.request.order.DeleteOrderRequest;
 import wj.flab.group_wise.dto.groupPurchase.request.order.ModifyOrderQuantityRequest;
 import wj.flab.group_wise.dto.groupPurchase.response.GroupPurchaseDetailResponse;
+import wj.flab.group_wise.dto.groupPurchase.response.GroupPurchaseSummaryResponse;
 import wj.flab.group_wise.service.domain.GroupPurchaseService;
 
 @RestController
@@ -40,11 +43,11 @@ public class GroupPurchaseController {
         return ResponseEntity.ok(groupPurchaseDetail);
     }
 
-//    @GetMapping()
-//    public ResponseEntity<GroupPurchaseDetailResponse> getGroupPurchaseDetail(@RequestBody GroupPurchaseSearchRequest searchRequest) {
-//        GroupPurchaseDetailResponse groupPurchaseDetail = groupPurchaseService.getGroupPurchaseDetail(groupPurchaseId);
-//        return ResponseEntity.ok(groupPurchaseDetail);
-//    }
+    @GetMapping()
+    public ResponseEntity<Page<GroupPurchaseSummaryResponse>> getGroupPurchaseDetail(@RequestBody GroupPurchaseSearchRequest searchRequest) {
+        Page<GroupPurchaseSummaryResponse> groupPurchaseSummaryResponses = groupPurchaseService.searchGroupPurchases(searchRequest);
+        return ResponseEntity.ok(groupPurchaseSummaryResponses);
+    }
 
     @PostMapping
     public ResponseEntity<CreateResponse> createGroupPurchase(@RequestBody GroupPurchaseCreateRequest groupPurchaseCreateRequest) {

@@ -1,16 +1,14 @@
 package wj.flab.group_wise.domain.groupPurchase;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import wj.flab.group_wise.domain.groupPurchase.GroupPurchase.Status;
+import wj.flab.group_wise.domain.product.Product;
 import wj.flab.group_wise.domain.product.ProductStock;
 import wj.flab.group_wise.domain.product.ProductViewResponseMapper;
-import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseStats;
 import wj.flab.group_wise.dto.groupPurchase.response.GroupPurchaseDetailResponse;
 import wj.flab.group_wise.dto.groupPurchase.response.GroupPurchaseDetailResponse.GroupPurchaseStockResponse;
+import wj.flab.group_wise.dto.groupPurchase.response.GroupPurchaseSummaryResponse;
 import wj.flab.group_wise.dto.product.response.ProductStockResponse;
 
 @Component
@@ -19,7 +17,27 @@ public class GroupPurchaseResponseMapper {
 
     private final ProductViewResponseMapper productMapper;
 
-    public GroupPurchaseDetailResponse mapToBaseResponse(GroupPurchase groupPurchase, GroupPurchaseStats stats) {
+    public GroupPurchaseSummaryResponse mapToSummaryResponse(GroupPurchase groupPurchase, Product product, int cheapestPrice) {
+        return new GroupPurchaseSummaryResponse(
+            groupPurchase.getId(),
+            groupPurchase.getTitle(),
+            groupPurchase.getProductId(),
+            product.getProductName(),
+            groupPurchase.getStatus(),
+            groupPurchase.getDiscountRate(),
+            cheapestPrice,
+            product.getProductStocks().size(),
+            groupPurchase.getMinimumParticipants(),
+            groupPurchase.getCurrentParticipantCount(),
+            groupPurchase.getParticipationRate(),
+            groupPurchase.getWishlistCount(),
+            groupPurchase.getStartDate(),
+            groupPurchase.getEndDate(),
+            groupPurchase.getRemainingTime()
+        );
+    }
+
+    public GroupPurchaseDetailResponse mapToBaseResponse(GroupPurchase groupPurchase) {
         return new GroupPurchaseDetailResponse(
             groupPurchase.getId(),
             groupPurchase.getTitle(),
@@ -29,34 +47,14 @@ public class GroupPurchaseResponseMapper {
             groupPurchase.getStartDate(),
             groupPurchase.getEndDate(),
             groupPurchase.getStatus(),
-            getRemainingTime(groupPurchase),
+            groupPurchase.getRemainingTime(),
             null,
-            stats.participantCount(),
-            getParticipationRate(groupPurchase),
-            stats.wishlistCount(),
+            groupPurchase.getCurrentParticipantCount(),
+            groupPurchase.getParticipationRate(),
+            groupPurchase.getWishlistCount(),
             null,
             null
         );
-    }
-
-    public Duration getRemainingTime(GroupPurchase groupPurchase) {
-        Status status = groupPurchase.getStatus();
-        if (status == Status.ONGOING) {
-            return Duration.between(LocalDateTime.now(), groupPurchase.getEndDate());
-        } else if (status == Status.PENDING) {
-            return Duration.between(LocalDateTime.now(), groupPurchase.getStartDate());
-        } else {
-            return Duration.ZERO;
-        }
-    }
-
-    public double getParticipationRate(GroupPurchase groupPurchase) {
-        long currentParticipantCount = groupPurchase.getGroupPurchaseMembers()
-            .stream()
-            .filter(GroupPurchaseMember::isHasParticipated)
-            .count();
-
-        return (double) currentParticipantCount / groupPurchase.getMinimumParticipants() * 100;
     }
 
     public List<GroupPurchaseStockResponse> mapToProductStockResponse(GroupPurchase groupPurchase, List<ProductStock> productStocks) {
