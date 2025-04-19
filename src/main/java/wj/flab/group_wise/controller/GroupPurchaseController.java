@@ -40,6 +40,12 @@ public class GroupPurchaseController {
         return ResponseEntity.ok(groupPurchaseDetail);
     }
 
+//    @GetMapping()
+//    public ResponseEntity<GroupPurchaseDetailResponse> getGroupPurchaseDetail(@RequestBody GroupPurchaseSearchRequest searchRequest) {
+//        GroupPurchaseDetailResponse groupPurchaseDetail = groupPurchaseService.getGroupPurchaseDetail(groupPurchaseId);
+//        return ResponseEntity.ok(groupPurchaseDetail);
+//    }
+
     @PostMapping
     public ResponseEntity<CreateResponse> createGroupPurchase(@RequestBody GroupPurchaseCreateRequest groupPurchaseCreateRequest) {
         Long groupPurchaseId = groupPurchaseService.createGroupPurchase(groupPurchaseCreateRequest);

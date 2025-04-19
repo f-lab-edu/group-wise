@@ -9,19 +9,19 @@ import wj.flab.group_wise.dto.product.response.ProductViewResponse;
 //import wj.flab.group_wise.dto.product.response.ProductViewResponse;
 
 public record GroupPurchaseDetailResponse (
-    Long id,
+    long id,
     String title,
-    Long productId,
-    Integer discountRate,
-    Integer minimumParticipants,
+    long productId,
+    int discountRate,
+    int minimumParticipants,
     LocalDateTime startDate,
     LocalDateTime endDate,
     GroupPurchase.Status status,
     Duration remainingTime,             // 남은 시간
     Integer cheapestPrice,              // productStock 최저가 (할인후)
-    Long currentParticipantCount,       // 공동구매에 참여한 총 고유 회원 수
-    Double participationRate,           // 공동구매 참여율
-    Long wishlistCount,                 // 즐겨찾기 인원수
+    long currentParticipantCount,       // 공동구매에 참여한 총 고유 회원 수
+    double participationRate,           // 공동구매 참여율
+    long wishlistCount,                 // 즐겨찾기 인원수
     ProductViewResponse product,
     List<GroupPurchaseStockResponse> productStocks
 ) {
