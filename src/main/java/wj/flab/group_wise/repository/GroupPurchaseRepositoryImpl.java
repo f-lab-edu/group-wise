@@ -18,7 +18,6 @@ import org.springframework.stereotype.Repository;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
 import wj.flab.group_wise.dto.SortDirection;
 import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseSearchRequest;
-import wj.flab.group_wise.service.domain.ProductService;
 
 
 @Repository
@@ -26,7 +25,7 @@ public class GroupPurchaseRepositoryImpl implements GroupPurchaseRepositoryCusto
 
     private final JPAQueryFactory queryFactory;
 
-    public GroupPurchaseRepositoryImpl(EntityManager em, ProductService productService) {
+    public GroupPurchaseRepositoryImpl(EntityManager em) {
         this.queryFactory = new JPAQueryFactory(em);
     }
 
