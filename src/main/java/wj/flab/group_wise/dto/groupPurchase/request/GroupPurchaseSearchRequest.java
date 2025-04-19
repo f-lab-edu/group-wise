@@ -2,6 +2,7 @@ package wj.flab.group_wise.dto.groupPurchase.request;
 
 import java.time.LocalDateTime;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
+import wj.flab.group_wise.domain.groupPurchase.GroupPurchase.Status;
 import wj.flab.group_wise.dto.SortDirection;
 
 public record GroupPurchaseSearchRequest(
@@ -23,12 +24,29 @@ public record GroupPurchaseSearchRequest(
     Double minParticipationRate,   // 최소 참여율 (0.0 ~ 1.0)
 
     // 정렬 옵션
-    SortBy sortBy, // = Optional.of(SortBy.CREATED_DATE),  // 기본값 설정
-    SortDirection sortDirection, // = Optional.of(SortDirection.DESC),
+    SortBy sortBy,
+    SortDirection sortDirection,
 
-    int page, // = 0,
-    int size // = 20
+    Integer page,
+    Integer size
 ) {
+
+    public GroupPurchaseSearchRequest(Status status, String title, LocalDateTime startDateFrom, LocalDateTime startDateTo, LocalDateTime endDateFrom, LocalDateTime endDateTo,
+        Integer minPrice, Integer maxPrice, Double minParticipationRate, SortBy sortBy, SortDirection sortDirection, Integer page, Integer size) {
+        this.status = status;
+        this.title = title;
+        this.startDateFrom = startDateFrom;
+        this.startDateTo = startDateTo;
+        this.endDateFrom = endDateFrom;
+        this.endDateTo = endDateTo;
+        this.minPrice = minPrice;
+        this.maxPrice = maxPrice;
+        this.minParticipationRate = minParticipationRate;
+        this.sortBy = sortBy == null ? SortBy.CREATED_DATE : sortBy;
+        this.sortDirection = sortDirection == null ? SortDirection.DESC : sortDirection;
+        this.page = page == null ? 0 : page;
+        this.size = size == null ? 20 : size;
+    }
 
     public enum SortBy {
         CREATED_DATE("생성일"),

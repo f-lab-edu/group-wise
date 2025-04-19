@@ -9,4 +9,8 @@ public enum SortDirection {
     SortDirection(String description) {
         this.description = description;
     }
+
+    public boolean isAsc() {
+        return this == ASC;
+    }
 }

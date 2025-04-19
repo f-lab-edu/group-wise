@@ -1,11 +1,11 @@
 package wj.flab.group_wise.repository;
 
-
 import static org.springframework.util.StringUtils.hasText;
 import static wj.flab.group_wise.domain.groupPurchase.QGroupPurchase.groupPurchase;
 import static wj.flab.group_wise.domain.groupPurchase.QGroupPurchaseMember.groupPurchaseMember;
 import static wj.flab.group_wise.domain.product.QProduct.product;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
@@ -14,8 +14,11 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
+import wj.flab.group_wise.dto.SortDirection;
 import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseSearchRequest;
 
 
@@ -30,26 +33,74 @@ public class GroupPurchaseRepositoryImpl implements GroupPurchaseRepositoryCusto
 
     @Override
     public Page<GroupPurchase> searchGroupPurchases(GroupPurchaseSearchRequest searchRequest) {
-        queryFactory
+        JPAQuery<GroupPurchase> contentQuery = queryFactory
             .selectFrom(groupPurchase)
             .leftJoin(product).on(groupPurchase.productId.eq(product.id)).fetchJoin()
-//            .leftJoin(product.productStocks, productStock).fetchJoin()
-//            .leftJoin(productStock.values, valueStock).fetchJoin()
-            .where(
-                statusEq(searchRequest.status()),
-                titleContain(searchRequest.title()),
+            .where(createWhereCondition(searchRequest));
 
-                startDateGoe(searchRequest.startDateFrom()),
-                startDateLoe(searchRequest.startDateTo()),
-                endDateGoe(searchRequest.endDateFrom()),
-                endDateLoe(searchRequest.endDateTo()),
+        if (searchRequest.sortBy() != null && searchRequest.sortDirection() != null) {
+            applySort(contentQuery, searchRequest.sortBy(), searchRequest.sortDirection());
+        }
 
-//                disCountedPriceGoe(searchRequest.minPrice()),                // 최소 가격
-//                disCountedPriceLoe(searchRequest.maxPrice()),                // 최대 가격
-                participationRateGoe(searchRequest.minParticipationRate())   // 최소 참여율
-            );
+        JPAQuery<Long> countQuery = queryFactory
+            .select(groupPurchase.count())
+//            .leftJoin(product).on(groupPurchase.productId.eq(product.id)).fetchJoin()
+            .from(groupPurchase)
+            .where(createWhereCondition(searchRequest));
 
-        return null;
+        return PageableExecutionUtils.getPage(
+            contentQuery.fetch(),
+            PageRequest.of(searchRequest.page(), searchRequest.size()),
+            countQuery::fetchOne
+        );
+    }
+
+    private BooleanBuilder createWhereCondition(GroupPurchaseSearchRequest searchRequest) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        builder
+            .and(statusEq(searchRequest.status())
+            .and(titleContain(searchRequest.title())))
+
+            .and(startDateGoe(searchRequest.startDateFrom()))
+            .and(startDateLoe(searchRequest.startDateTo()))
+            .and(endDateGoe(searchRequest.endDateFrom()))
+            .and(endDateLoe(searchRequest.endDateTo()))
+
+            .and(participationRateGoe(searchRequest.minParticipationRate()));
+
+        // todo 가격 필터는 나중에 구현
+        return builder;
+    }
+
+    // 정렬 조건 적용 메서드 추가
+    private void applySort(JPAQuery<GroupPurchase> query, GroupPurchaseSearchRequest.SortBy sortBy, SortDirection direction) {
+        switch (sortBy) {
+            case CREATED_DATE:
+                query.orderBy(direction.isAsc() ? groupPurchase.createdDate.asc() : groupPurchase.createdDate.desc());
+                break;
+            case START_DATE:
+                query.orderBy(direction.isAsc() ? groupPurchase.startDate.asc() : groupPurchase.startDate.desc());
+                break;
+            case END_DATE:
+                query.orderBy(direction.isAsc() ? groupPurchase.endDate.asc() : groupPurchase.endDate.desc());
+                break;
+            case REMAINING_TIME: // todo -> 복잡한 정렬은 추후 애플리케이션 레벨로 변경해보기
+                // 남은 시간 = 종료일 - 현재
+                NumberExpression<Long> remainingTime = Expressions.numberTemplate(Long.class,
+                    "TIMESTAMPDIFF(SECOND, CURRENT_TIMESTAMP, {0})",
+                    groupPurchase.endDate);
+                query.orderBy(direction.isAsc() ? remainingTime.asc() : remainingTime.desc());
+                break;
+            case PARTICIPANT_COUNT: // todo -> 복잡한 정렬은 추후 애플리케이션 레벨로 변경해보기
+                // 참여자 수는 직접 서브쿼리로 정렬할 수 없으므로 표현식으로 변환
+                NumberExpression<Long> participantCountExpr = Expressions.numberTemplate(Long.class,
+                    "(SELECT COUNT(*) FROM group_purchase_member gpm " +
+                        "WHERE gpm.group_purchase_id = {0} AND gpm.has_participated = true)",
+                    groupPurchase.id);
+                query.orderBy(direction.isAsc() ? participantCountExpr.asc() : participantCountExpr.desc());
+                break;
+        }
     }
 
     private BooleanExpression participationRateGoe(Double minParticipationRate) {
