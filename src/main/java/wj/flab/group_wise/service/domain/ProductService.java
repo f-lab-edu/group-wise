@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
 import wj.flab.group_wise.domain.exception.TargetEntity;
 import wj.flab.group_wise.domain.product.Product;
+import wj.flab.group_wise.domain.product.ProductStock;
 import wj.flab.group_wise.domain.product.ProductViewResponseMapper;
 import wj.flab.group_wise.dto.product.request.ProductCreateRequest;
 import wj.flab.group_wise.dto.product.request.ProductDetailUpdateRequest;
@@ -29,7 +30,7 @@ public class ProductService {
 
     public ProductViewResponse getProductInfo(Long productId) {
         Product product = findProductById(productId);
-        return productViewResponseMapper.mapAttributeValues(product);
+        return productViewResponseMapper.mapToProductViewResponse(product);
     }
 
     public Long createProduct(ProductCreateRequest productToCreate) {
@@ -90,4 +91,11 @@ public class ProductService {
         productRepository.delete(product);
     }
 
+    public int getCheapestStockPrice(Long productId) {
+        Product product = findProductById(productId);
+        return product.getProductStocks().stream()
+            .mapToInt(ProductStock::getPrice)
+            .min()
+            .orElse(0);
+    }
 }

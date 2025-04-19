@@ -68,6 +68,20 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+// QueryDSL Q타입 생성 경로를 명시적으로 지정
+def querydslDir = "src/main/generated"
+
+// 소스 경로에 Q타입 생성 경로 추가
+sourceSets {
+	main.java.srcDirs += [ querydslDir ]
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.getGeneratedSourceOutputDirectory().set(file(querydslDir))
+}
+
+
+// clean 시 생성된 Q타입 제거
 clean {
-	delete file('src/main/generated')
+	delete file(querydslDir)
 }

@@ -8,9 +8,10 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase.Status;
+import wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseStats;
 
 @Repository
-public interface GroupPurchaseRepository extends JpaRepository<GroupPurchase, Long> {
+public interface GroupPurchaseRepository extends JpaRepository<GroupPurchase, Long>, GroupPurchaseRepositoryCustom {
 
     @Query("SELECT gp FROM GroupPurchase gp "
         + "JOIN Product p ON gp.productId = p.id "
@@ -20,5 +21,12 @@ public interface GroupPurchaseRepository extends JpaRepository<GroupPurchase, Lo
         @Param("productId") Long productId);
 
     List<GroupPurchase> findByStatusAndEndDateBefore(Status status, LocalDateTime now);
+
+    @Query("SELECT new wj.flab.group_wise.dto.groupPurchase.request.GroupPurchaseStats("
+        + "COUNT(CASE WHEN gpm.hasParticipated = true THEN 1 END), "
+        + "COUNT(CASE WHEN gpm.isWishlist = true THEN 1 END)) " +
+        "FROM GroupPurchaseMember gpm " +
+        "WHERE gpm.groupPurchase.id = :groupId")
+    GroupPurchaseStats getGroupPurchaseStats(Long groupId);
 }
 

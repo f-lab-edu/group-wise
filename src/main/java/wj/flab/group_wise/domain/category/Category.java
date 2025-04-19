@@ -15,7 +15,7 @@ import lombok.EqualsAndHashCode;
 import wj.flab.group_wise.domain.BaseTimeEntity;
 
 @Entity
-@EqualsAndHashCode(of = "name")
+@EqualsAndHashCode(of = "id", callSuper = false)
 public class Category extends BaseTimeEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
