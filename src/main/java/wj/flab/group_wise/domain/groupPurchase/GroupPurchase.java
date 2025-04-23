@@ -241,7 +241,7 @@ public class GroupPurchase extends BaseTimeEntity {
         return Duration.between(LocalDateTime.now(), getEndDate());
     }
 
-    public double getParticipationRate() {
+    public double getGoalAchievementRate() {
         return (double) getCurrentParticipantCount() / minimumParticipants * 100;
     }
 

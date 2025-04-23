@@ -15,7 +15,7 @@ public record GroupPurchaseSummaryResponse (
     int productStockCount,
     int minimumParticipants,
     long currentParticipantCount,
-    double participationRate,
+    double goalAchievementRate,
     long wishlistCount,
     LocalDateTime startDate,
     LocalDateTime endDate,

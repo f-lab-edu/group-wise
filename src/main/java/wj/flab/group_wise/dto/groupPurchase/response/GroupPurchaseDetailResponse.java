@@ -20,7 +20,7 @@ public record GroupPurchaseDetailResponse (
     Duration remainingTime,             // 남은 시간
     Integer cheapestPrice,              // productStock 최저가 (할인후)
     long currentParticipantCount,       // 공동구매에 참여한 총 고유 회원 수
-    double participationRate,           // 공동구매 참여율
+    double goalAchievementRate,           // 공동구매 참여율
     long wishlistCount,                 // 즐겨찾기 인원수
     ProductViewResponse product,
     List<GroupPurchaseStockResponse> productStocks
@@ -42,7 +42,7 @@ public record GroupPurchaseDetailResponse (
             remainingTime,
             cheapestPrice,
             currentParticipantCount,
-            participationRate,
+            goalAchievementRate,
             wishlistCount,
             productResponse,
             productStocks

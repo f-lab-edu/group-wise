@@ -53,7 +53,7 @@ public class GroupPurchaseRepositoryImpl implements GroupPurchaseRepositoryCusto
             .and(startDateLoe(searchRequest.startDateTo()))
             .and(endDateGoe(searchRequest.endDateFrom()))
             .and(endDateLoe(searchRequest.endDateTo()))
-            .and(participationRateGoe(searchRequest.minParticipationRate()));
+            .and(goalAchievementRateGoe(searchRequest.minGoalAchievementRate()));
 
         // todo 가격 필터는 나중에 구현
         return builder;
@@ -95,7 +95,7 @@ public class GroupPurchaseRepositoryImpl implements GroupPurchaseRepositoryCusto
         }
     }
 
-    private BooleanExpression participationRateGoe(Double minParticipationRate) {
+    private BooleanExpression goalAchievementRateGoe(Double minGoalAchievementRate) {
 
         JPAQuery<Long> participantCountSubQuery = queryFactory
             .select(groupPurchaseMember.count()).from(groupPurchaseMember)
@@ -104,12 +104,12 @@ public class GroupPurchaseRepositoryImpl implements GroupPurchaseRepositoryCusto
                 groupPurchaseMember.groupPurchase.id.eq(groupPurchase.id)
             );
 
-        // 참여율 = 실제 참여자 / 최소 참여자
-        NumberExpression<Double> participationRate = Expressions.numberTemplate(Double.class,
+        // 인원목표 달성률 = 실제 참여자 / 최소 참여자
+        NumberExpression<Double> goalAchievementRate = Expressions.numberTemplate(Double.class,
             "({0} * 1.0) / {1}",
             participantCountSubQuery, groupPurchase.minimumParticipants);
 
-        return minParticipationRate != null ? participationRate.goe(minParticipationRate) : null;
+        return minGoalAchievementRate != null ? goalAchievementRate.goe(minGoalAchievementRate) : null;
     }
 
 /*

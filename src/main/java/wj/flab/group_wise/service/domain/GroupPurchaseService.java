@@ -87,8 +87,8 @@ public class GroupPurchaseService {
                 case PARTICIPANT_COUNT:
                     sortByParticipantCount(groupPurchases, searchRequest.sortDirection());
                     break;
-                case PARTICIPATION_RATE:
-                    sortByParticipationRate(groupPurchases, searchRequest.sortDirection());
+                case GOAL_ACHIEVEMENT_RATE:
+                    sortByGoalAchievementRate(groupPurchases, searchRequest.sortDirection());
                     break;
                 case CHEAPEST_PRICE:
                     sortByCheapestPrice(groupPurchases, searchRequest.sortDirection());
@@ -151,9 +151,9 @@ public class GroupPurchaseService {
     }
 
     // 참여율로 정렬
-    private void sortByParticipationRate(List<GroupPurchase> results, SortDirection direction) {
+    private void sortByGoalAchievementRate(List<GroupPurchase> results, SortDirection direction) {
         Comparator<GroupPurchase> comparator = Comparator.comparing(
-            GroupPurchase::getParticipationRate
+            GroupPurchase::getGoalAchievementRate
         );
 
         if (direction == SortDirection.DESC) {

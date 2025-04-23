@@ -21,7 +21,7 @@ public record GroupPurchaseSearchRequest(
     Integer maxPrice,              // 최대 가격
 
     // 참여율 필터
-    Double minParticipationRate,   // 최소 참여율 (0.0 ~ 1.0)
+    Double minGoalAchievementRate,   // 최소 인원 목표 달성률 (0.0 ~ 1.0)
 
     // 정렬 옵션
     SortBy sortBy,
@@ -32,7 +32,7 @@ public record GroupPurchaseSearchRequest(
 ) {
 
     public GroupPurchaseSearchRequest(Status status, String title, LocalDateTime startDateFrom, LocalDateTime startDateTo, LocalDateTime endDateFrom, LocalDateTime endDateTo,
-        Integer minPrice, Integer maxPrice, Double minParticipationRate, SortBy sortBy, SortDirection sortDirection, Integer page, Integer size) {
+        Integer minPrice, Integer maxPrice, Double minGoalAchievementRate, SortBy sortBy, SortDirection sortDirection, Integer page, Integer size) {
         this.status = status;
         this.title = title;
         this.startDateFrom = startDateFrom;
@@ -41,7 +41,7 @@ public record GroupPurchaseSearchRequest(
         this.endDateTo = endDateTo;
         this.minPrice = minPrice;
         this.maxPrice = maxPrice;
-        this.minParticipationRate = minParticipationRate;
+        this.minGoalAchievementRate = minGoalAchievementRate;
         this.sortBy = sortBy == null ? SortBy.CREATED_DATE : sortBy;
         this.sortDirection = sortDirection == null ? SortDirection.DESC : sortDirection;
         this.page = page == null ? 0 : page;
@@ -53,7 +53,7 @@ public record GroupPurchaseSearchRequest(
         START_DATE("시작일"),
         END_DATE("종료일"),
         REMAINING_TIME("남은 시간"),
-        PARTICIPATION_RATE("참여율"),
+        GOAL_ACHIEVEMENT_RATE("인원목표달성률"),
         CHEAPEST_PRICE("최저가"),
         PARTICIPANT_COUNT("참여자 수");
 
