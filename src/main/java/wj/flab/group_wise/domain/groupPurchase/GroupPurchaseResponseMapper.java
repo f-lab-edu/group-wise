@@ -33,7 +33,7 @@ public class GroupPurchaseResponseMapper {
             groupPurchase.getWishlistCount(),
             groupPurchase.getStartDate(),
             groupPurchase.getEndDate(),
-            groupPurchase.getRemainingTime()
+            groupPurchase.getRemainingTimeUtilEndDate()
         );
     }
 
@@ -47,7 +47,7 @@ public class GroupPurchaseResponseMapper {
             groupPurchase.getStartDate(),
             groupPurchase.getEndDate(),
             groupPurchase.getStatus(),
-            groupPurchase.getRemainingTime(),
+            groupPurchase.getRemainingTimeUtilEndDate(),
             null,
             groupPurchase.getCurrentParticipantCount(),
             groupPurchase.getParticipationRate(),

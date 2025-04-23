@@ -237,15 +237,8 @@ public class GroupPurchase extends BaseTimeEntity {
             .count();
     }
 
-    public Duration getRemainingTime() {
-        Status status = getStatus();
-        if (status == Status.ONGOING) {
-            return Duration.between(LocalDateTime.now(), getEndDate());
-        } else if (status == Status.PENDING) {
-            return Duration.between(LocalDateTime.now(), getStartDate());
-        } else {
-            return Duration.ZERO;
-        }
+    public Duration getRemainingTimeUtilEndDate() {
+        return Duration.between(LocalDateTime.now(), getEndDate());
     }
 
     public double getParticipationRate() {
