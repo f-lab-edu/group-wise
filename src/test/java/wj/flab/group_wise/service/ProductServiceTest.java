@@ -77,7 +77,7 @@ class ProductServiceTest {
         long productSize = products.size();
         Assertions.assertThat(productSize).isEqualTo(1);
 
-        ProductViewResponse productViewResponse = productResponseMapper.mapAttributeValues(products.get(0));
+        ProductViewResponse productViewResponse = productResponseMapper.mapToProductViewResponse(products.get(0));
         int stockSize = productViewResponse.productStocks().size();
         Assertions.assertThat(stockSize).isEqualTo((int) Math.pow(valuePerAttrCount, attrCount));
     }

@@ -11,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -163,10 +164,6 @@ public class GroupPurchase extends BaseTimeEntity {
         return status == Status.PENDING;
     }
 
-    public int getCurrentParticipants() {
-        return groupPurchaseMembers.size();
-    }
-
     public void wishGroupPurchase(Long memberId, boolean wish) {
         GroupPurchaseMember member;
         Optional<GroupPurchaseMember> memberOptional =
@@ -231,5 +228,35 @@ public class GroupPurchase extends BaseTimeEntity {
             .map(GroupPurchaseMember::getMemberId)
             .toList();
     }
+
+    public Long getStockParticipantCount(Long stockId) {
+        return groupPurchaseMembers.stream()
+            .filter(GroupPurchaseMember::isHasParticipated)
+            .flatMap(member ->
+                member.getSelectedItems().stream().filter(item -> item.getProductStockId().equals(stockId) ))
+            .count();
+    }
+
+    public Duration getRemainingTimeUtilEndDate() {
+        return Duration.between(LocalDateTime.now(), getEndDate());
+    }
+
+    public double getGoalAchievementRate() {
+        return (double) getCurrentParticipantCount() / minimumParticipants * 100;
+    }
+
+    public long getCurrentParticipantCount() {
+        return groupPurchaseMembers.stream()
+            .filter(GroupPurchaseMember::isHasParticipated)
+            .count();
+    }
+
+    public long getWishlistCount() {
+        return groupPurchaseMembers.stream()
+            .filter(GroupPurchaseMember::isWishlist)
+            .count();
+    }
+
+
 
 }

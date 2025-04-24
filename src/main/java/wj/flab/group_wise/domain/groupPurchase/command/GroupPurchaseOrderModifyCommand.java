@@ -3,9 +3,9 @@ package wj.flab.group_wise.domain.groupPurchase.command;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
-import wj.flab.group_wise.dto.groupPurchase.order.AddOrderRequest;
-import wj.flab.group_wise.dto.groupPurchase.order.DeleteOrderRequest;
-import wj.flab.group_wise.dto.groupPurchase.order.ModifyOrderQuantityRequest;
+import wj.flab.group_wise.dto.groupPurchase.request.order.AddOrderRequest;
+import wj.flab.group_wise.dto.groupPurchase.request.order.DeleteOrderRequest;
+import wj.flab.group_wise.dto.groupPurchase.request.order.ModifyOrderQuantityRequest;
 
 /*
 ## use = JsonTypeInfo.Id.NAME:

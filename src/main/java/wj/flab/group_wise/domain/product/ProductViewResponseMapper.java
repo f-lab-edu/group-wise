@@ -10,7 +10,7 @@ import wj.flab.group_wise.dto.product.response.ProductViewResponse;
 @Component
 public class ProductViewResponseMapper {
 
-    public ProductViewResponse mapAttributeValues(Product product) {
+    public ProductViewResponse mapToProductViewResponse(Product product) {
         return new ProductViewResponse(
             product.getId(),
             product.getSeller(),
@@ -24,7 +24,7 @@ public class ProductViewResponseMapper {
         );
     }
 
-    private List<ProductAttributeViewResponse> mapAttributes(List<ProductAttribute> productAttributes) {
+    public List<ProductAttributeViewResponse> mapAttributes(List<ProductAttribute> productAttributes) {
         return productAttributes.stream()
             .map(attr -> new ProductAttributeViewResponse(
                 attr.getId(),
@@ -36,7 +36,7 @@ public class ProductViewResponseMapper {
             .toList();
     }
 
-    private List<ProductAttributeValueViewResponse> mapAttributeValues(List<ProductAttributeValue> values) {
+    public List<ProductAttributeValueViewResponse> mapAttributeValues(List<ProductAttributeValue> values) {
         return values.stream()
             .map(value -> new ProductAttributeValueViewResponse(
                 value.getId(),
@@ -48,7 +48,7 @@ public class ProductViewResponseMapper {
             .toList();
     }
 
-    private List<ProductStockResponse> mapStocks(List<ProductStock> productStocks) {
+    public List<ProductStockResponse> mapStocks(List<ProductStock> productStocks) {
         return productStocks.stream()
             .map(stock -> new ProductStockResponse(
                 stock.getId(),
@@ -61,7 +61,7 @@ public class ProductViewResponseMapper {
             .toList();
     }
 
-    private List<ProductStockResponse.ProductAttributeValueResponse> mapAttributeValuesOfStock (List<ProductAttributeValueStock> stockAndValueMaps) {
+    public List<ProductStockResponse.ProductAttributeValueResponse> mapAttributeValuesOfStock (List<ProductAttributeValueStock> stockAndValueMaps) {
         return stockAndValueMaps.stream()
             .map(stockValue -> {
                 ProductAttributeValue attrValue = stockValue.getProductAttributeValue();
