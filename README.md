@@ -54,6 +54,33 @@
 ### 도메인 모델 캡슐화와 경계 설정
 애그리게이트 간 경계를 명확히 하고 내부 구현을 은닉하는 과정에서, 코드의 복잡성과 유지보수성 사이의 균형을 고민했습니다. Product와 GroupPurchase 도메인에서 외부에서 직접 접근을 제한하면서도 필요한 기능은 제공할 수 있도록 Protected 접근 제어자와 메서드 설계에 신경썼습니다.
 
+### QueryDSL과 Java Stream API의 적절한 활용 지점 결정
+복잡한 검색 조건과 정렬을 구현하는 과정에서, 모든 로직을 QueryDSL에 집중시키는 것과 일부 처리를 서비스 레이어의 Java 코드로 분산시키는 것 사이의 균형점을 고민했습니다. 특히 `GroupPurchaseRepositoryImpl`에서는 기본적인 필터링은 QueryDSL로 처리하되, 복잡한 계산이 필요한 정렬 조건(남은 시간, 참여율 등)은 서비스 레이어에서 Java Stream API로 처리하는 방식을 채택했습니다. 이 접근 방식은 코드 가독성과 유지보수성을 높이는 효과가 있었습니다.
+
+```java
+// Repository에서 기본 필터링
+@Override
+public List<GroupPurchase> searchGroupPurchases(GroupPurchaseSearchRequest searchRequest) {
+   JPAQuery<GroupPurchase> contentQuery = queryFactory
+           .selectFrom(groupPurchase)
+           .where(createWhereCondition(searchRequest));
+   // 단순 정렬만 적용
+   return contentQuery.fetch();
+}
+
+// Service에서 복잡한 정렬 로직 처리
+private void sortByRemainingTime(List<GroupPurchase> results, SortDirection direction) {
+   LocalDateTime now = LocalDateTime.now();
+   Comparator<GroupPurchase> comparator = Comparator.comparing(
+           gp -> Duration.between(now, gp.getEndDate()).getSeconds()
+   );
+   if (direction == SortDirection.DESC) {
+      comparator = comparator.reversed();
+   }
+   results.sort(comparator);
+}
+```
+
 ### 이벤트 기반 시스템 설계
 공동구매 상태 변경 시 알림 발송, 주문 생성 등 여러 후속 처리가 필요한 상황에서, 각 서비스 간 직접적인 의존성을 줄이기 위해 이벤트 기반 아키텍처를 적용했습니다. GroupPurchaseService는 상태 변경 시 해당 이벤트만 발행하고, 실제 처리는 각 이벤트 리스너가 담당하는 구조입니다. 이를 통해 서비스 간 결합도를 낮추고, 새로운 기능 추가 시 기존 코드 수정 없이 새 리스너만 추가하는 확장성을 확보했습니다. 또한 각 서비스가 자신의 핵심 책임에만 집중할 수 있어 코드의 응집도도 향상되었습니다.
 ```java
@@ -92,6 +119,9 @@ public record GroupPurchaseDetailResponse(
 
 ### Spring Security 통합 및 JWT 인증
 토큰 기반 인증 메커니즘을 Spring Security와 통합하는 과정에서, 코드 중복을 최소화하고 보안 정책을 중앙화하기 위해 JwtTokenProvider 클래스를 설계했습니다. 이를 통해 인증 로직의 응집도를 높이고 유지보수성을 개선했습니다.
+
+### 데이터 컨버터를 활용한 다중 값 처리 최적화
+Notification 엔티티의 deliveredChannels 필드 설계에서, 알림 채널(EMAIL, SMS, PUSH 등)을 저장하기 위해 별도의 테이블을 사용하는 대신 JPA 컨버터를 활용하는 접근 방식을 선택했습니다. 이를 통해 엔티티 모델에서는 Set<DeliveryChannel> 형태로 사용하면서도, 데이터베이스에는 단일 컬럼에 쉼표로 구분된 문자열로 저장하여 스키마 단순화와 조회 성능을 모두 확보했습니다.
 
 ## 📊 ERD 다이어그램
 
