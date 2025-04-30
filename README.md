@@ -122,6 +122,21 @@ public record GroupPurchaseDetailResponse(
 
 ### 데이터 컨버터를 활용한 다중 값 처리 최적화
 Notification 엔티티의 deliveredChannels 필드 설계에서, 알림 채널(EMAIL, SMS, PUSH 등)을 저장하기 위해 별도의 테이블을 사용하는 대신 JPA 컨버터를 활용하는 접근 방식을 선택했습니다. 이를 통해 엔티티 모델에서는 Set<DeliveryChannel> 형태로 사용하면서도, 데이터베이스에는 단일 컬럼에 쉼표로 구분된 문자열로 저장하여 스키마 단순화와 조회 성능을 모두 확보했습니다.
+```java
+@Convert(converter = DeliveryChannelSetConverter.class)
+private Set<DeliveryChannel> deliveredChannels;
+
+// 컨버터 구현
+@Override
+public String convertToDatabaseColumn(Set<DeliveryChannel> attribute) {
+if (attribute == null || attribute.isEmpty()) {
+return null;
+}
+return attribute.stream()
+.map(DeliveryChannel::name)
+.collect(Collectors.joining(DELIMITER));
+}
+```
 
 ## 📊 ERD 다이어그램
 
