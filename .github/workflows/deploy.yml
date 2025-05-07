@@ -27,7 +27,7 @@ jobs:
 #          DB_NAME_TEST: ${{ secrets.DB_NAME_TEST }}
 #          DB_USERNAME: ${{ secrets.DB_USERNAME }}
 #          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-#          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
         run: ./gradlew clean build
 
       - name: github actions 아티팩트로 jar 업로드
