@@ -1,11 +1,14 @@
 package wj.flab.group_wise.service;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import wj.flab.group_wise.domain.exception.EntityNotFoundException;
@@ -27,6 +30,7 @@ import wj.flab.group_wise.service.domain.ProductService;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@Slf4j
 class GroupPurchaseServiceTest {
 
     @Autowired
@@ -42,6 +46,14 @@ class GroupPurchaseServiceTest {
     private ProductDomainDtoCreator productDomainDtoCreator;
     @Autowired
     private MemberService memberService;
+
+    @Autowired
+    private Environment environment;
+
+    @Test
+    public void testActiveProfiles() {
+        log.info("Active profiles: {}", Arrays.toString(environment.getActiveProfiles()));
+    }
 
     @Test
     void createGroupPurchase() {
