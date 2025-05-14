@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Deploy to EC2 (Blue-Green)
 
 on:
   push:
@@ -22,11 +22,6 @@ jobs:
       - name: 테스트 및 빌드
         env:
           SPRING_PROFILES_ACTIVE: test
-#          DB_HOST: ${{ secrets.DB_HOST }}
-#          DB_NAME_PROD: ${{ secrets.DB_NAME_PROD }}
-#          DB_NAME_TEST: ${{ secrets.DB_NAME_TEST }}
-#          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-#          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
         run: ./gradlew clean build
 
@@ -46,31 +41,6 @@ jobs:
           name: app-jar            # 다운로드할 아티팩트 이름 (upload-artifact에서 설정한 이름)
           path: .                  # 다운로드할 경로 (현재 디렉토리)
 
-      - name: EC2로 배포 준비하기
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_PRIVATE_KEY }}
-          script: |
-            # 배포 디렉토리 설정
-            DEPLOY_DIR=/home/ubuntu/group-wise
-            BACKUP_DIR=$DEPLOY_DIR/backup
-            LOG_DIR=$DEPLOY_DIR/logs
-            TIMESTAMP=$(date +%Y%m%d%H%M%S)
-            
-            # 디렉토리 준비
-            mkdir -p $BACKUP_DIR
-            mkdir -p $LOG_DIR
-            
-            # 현재 실행중인 애플리케이션 백업
-            if [ -f $DEPLOY_DIR/app.jar ]; then
-              cp $DEPLOY_DIR/app.jar $BACKUP_DIR/app-$TIMESTAMP.jar
-            fi
-            
-            # 애플리케이션 중지
-            sudo fuser -k -n tcp 8080 || true
-
       - name: SCP 로 EC2에 빌드된 JAR 파일 전송하기
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -80,7 +50,7 @@ jobs:
           source: "*.jar"
           target: "/home/ubuntu/group-wise"
 
-      - name: EC2에서 애플리케이션 실행하기
+      - name: 무중단 배포 실행
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -90,7 +60,20 @@ jobs:
             cd /home/ubuntu/group-wise
 
             # 새 JAR 파일 이름 변경
-            mv *SNAPSHOT.jar app.jar
+            mv *SNAPSHOT.jar app-new.jar
+            
+            # 현재 실행 중인 애플리케이션 확인
+            CURRENT_PORT=$(cat /home/ubuntu/group-wise/current_port.txt 2>/dev/null || echo "8080")
+            
+            # 대기 포트 결정
+            if [ "$CURRENT_PORT" = "8080" ]; then
+              TARGET_PORT="8081"
+            else
+              TARGET_PORT="8080"
+            fi
+            
+            echo "현재 실행 중인 포트: $CURRENT_PORT"
+            echo "새 애플리케이션 실행할 포트: $TARGET_PORT"
 
             # 환경 변수 설정
             export DB_HOST=${{ secrets.DB_HOST }}
@@ -98,41 +81,43 @@ jobs:
             export DB_USERNAME=${{ secrets.DB_USERNAME }}
             export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             export JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+            export SERVER_PORT=$TARGET_PORT
 
             # 애플리케이션 실행
-            nohup java -jar app.jar > ./logs/application-$(date +%Y%m%d).log 2>&1 &
-
+            nohup java -jar -Dserver.port=$TARGET_PORT app-new.jar > ./logs/application-$TARGET_PORT-$(date +%Y%m%d).log 2>&1 &
+            
             # 애플리케이션 시작을 최대 2분(120초) 동안 대기
+            echo "새 애플리케이션 시작 대기..."
+            
             MAX_WAIT=120
             WAIT_COUNT=0
-            echo "Waiting for application to start..."
-            while ! nc -z localhost 8080 && [ $WAIT_COUNT -lt $MAX_WAIT ]; do
+
+            while ! nc -z localhost $TARGET_PORT && [ $WAIT_COUNT -lt $MAX_WAIT ]; do
               sleep 5
               WAIT_COUNT=$((WAIT_COUNT+5))
               echo "Still waiting... ($WAIT_COUNT seconds elapsed)"
             done
-            
-            # 프로세스 확인
+                    
             if [ $WAIT_COUNT -ge $MAX_WAIT ]; then
-              echo "Application failed to start within $MAX_WAIT seconds!"
-            
-              # 프로세스 실행 여부 확인
-              if ! pgrep -f "java -jar app.jar" > /dev/null; then
-                echo "Application failed to start. Rolling back..."
-                sudo fuser -k -n tcp 8080 || true
-              
-                # 백업에서 복원
-                LATEST_BACKUP=$(ls -t $BACKUP_DIR/app-*.jar | head -1)
-                if [ -n "$LATEST_BACKUP" ]; then
-                  cp $LATEST_BACKUP app.jar
-                  nohup java -jar app.jar > ./logs/application-rollback-$(date +%Y%m%d).log 2>&1 &
-                  echo "Rolled back to previous version"
-                else
-                  echo "No backup available for rollback"
-                fi
-                
-                exit 1
-              fi
+              echo "새 애플리케이션 시작 실패. 배포 중단."
+              exit 1
             fi
             
-            echo "Deployment successful!"
+            echo "새 애플리케이션이 정상적으로 시작됨."
+            
+            # Nginx 설정 업데이트
+            sudo sed -i "s/proxy_pass http:\/\/localhost:$CURRENT_PORT/proxy_pass http:\/\/localhost:$TARGET_PORT/g" /etc/nginx/sites-available/default
+            sudo systemctl reload nginx
+            
+            echo "Nginx 설정이 포트 $TARGET_PORT로 업데이트됨."
+            
+            # 이전 애플리케이션 종료
+            if lsof -ti:$CURRENT_PORT > /dev/null; then
+              echo "이전 애플리케이션(포트 $CURRENT_PORT) 종료 중..."
+              kill $(lsof -ti:$CURRENT_PORT)
+            fi
+            
+            # 현재 포트 기록
+            echo "$TARGET_PORT" > /home/ubuntu/group-wise/current_port.txt
+            
+            echo "무중단 배포 완료!"
