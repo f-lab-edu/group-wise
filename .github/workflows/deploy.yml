@@ -1,0 +1,138 @@
+name: Deploy to EC2 (Blue-Green)
+
+on:
+  push:
+    branches:
+      [main , group-wise-*]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Github Repository 에 올린 소스코드 가져오기
+        uses: actions/checkout@v3
+
+      - name: JDK 17 설치
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: gradle
+
+      - name: 테스트 및 빌드
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+        run: ./gradlew clean build
+
+      - name: github actions 아티팩트로 jar 업로드
+        uses: actions/upload-artifact@v4   # GitHub Actions의 작업(job) 간에 전달하기 위해 사용
+        with:
+          name: app-jar           # 아티팩트 이름 (식별자로 사용)
+          path: build/libs/*.jar  # 업로드할 파일 경로
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: github actions 아티팩트에서 jar 다운로드
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar            # 다운로드할 아티팩트 이름 (upload-artifact에서 설정한 이름)
+          path: .                  # 다운로드할 경로 (현재 디렉토리)
+
+      - name: SCP 로 EC2에 빌드된 JAR 파일 전송하기
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          source: "*.jar"
+          target: "/home/ubuntu/group-wise"
+
+      - name: 무중단 배포 실행
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_PRIVATE_KEY }}
+          script: |
+            cd /home/ubuntu/group-wise
+            
+            # 필요한 도구 설치 확인
+            which nc > /dev/null || sudo apt-get update && sudo apt-get install -y netcat
+            which lsof > /dev/null || sudo apt-get install -y lsof
+            
+            # 디렉토리 생성
+            mkdir -p logs
+            
+            # 새 JAR 파일 이름 변경
+            mv *SNAPSHOT.jar app-new.jar
+            
+            # 첫 배포 시 Nginx 설정 확인
+            if [ ! -f /home/ubuntu/group-wise/current_port.txt ]; then
+              echo "첫 배포 감지, Nginx 초기 설정 생성"
+              # Nginx 설정 파일(/etc/nginx/conf.d/group-wise.conf)을 생성
+              echo 'server { listen 80 default_server; location / { proxy_pass http://localhost:8080; proxy_set_header Host $host; proxy_set_header X-Real-IP $remote_addr; proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; proxy_set_header X-Forwarded-Proto $scheme; } }' | sudo tee /etc/nginx/conf.d/group-wise.conf > /dev/null
+              sudo nginx -t && sudo systemctl reload nginx
+            fi
+            
+            # 현재 실행 중인 애플리케이션 확인
+            CURRENT_PORT=$(cat /home/ubuntu/group-wise/current_port.txt 2>/dev/null || echo "8080")
+            
+            # 대기 포트 결정
+            if [ "$CURRENT_PORT" = "8080" ]; then
+              TARGET_PORT="8081"
+            else
+              TARGET_PORT="8080"
+            fi
+            
+            echo "현재 실행 중인 포트: $CURRENT_PORT"
+            echo "새 애플리케이션 실행할 포트: $TARGET_PORT"
+
+            # 환경 변수 설정
+            export DB_HOST=${{ secrets.DB_HOST }}
+            export DB_NAME_PROD=${{ secrets.DB_NAME_PROD }}
+            export DB_USERNAME=${{ secrets.DB_USERNAME }}
+            export DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            export JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+            export SERVER_PORT=$TARGET_PORT
+
+            # 애플리케이션 실행
+            nohup java -jar -Dserver.port=$TARGET_PORT app-new.jar > ./logs/application-$TARGET_PORT-$(date +%Y%m%d).log 2>&1 &
+            
+            # 애플리케이션 시작을 최대 2분(120초) 동안 대기
+            echo "새 애플리케이션 시작 대기..."
+            
+            MAX_WAIT=120
+            WAIT_COUNT=0
+
+            while ! nc -z localhost $TARGET_PORT && [ $WAIT_COUNT -lt $MAX_WAIT ]; do
+              sleep 5
+              WAIT_COUNT=$((WAIT_COUNT+5))
+              echo "Still waiting... ($WAIT_COUNT seconds elapsed)"
+            done
+            
+            if [ $WAIT_COUNT -ge $MAX_WAIT ]; then
+              echo "새 애플리케이션 시작 실패. 배포 중단."
+              exit 1
+            fi
+            
+            echo "새 애플리케이션이 정상적으로 시작됨."
+            
+            # Nginx 설정 업데이트
+            sudo sed -i "s/proxy_pass http:\/\/localhost:$CURRENT_PORT/proxy_pass http:\/\/localhost:$TARGET_PORT/g" /etc/nginx/conf.d/group-wise.conf
+            sudo systemctl reload nginx
+            
+            echo "Nginx 설정이 포트 $TARGET_PORT로 업데이트됨."
+            
+            # 이전 애플리케이션 종료
+            if lsof -ti:$CURRENT_PORT > /dev/null; then
+              echo "이전 애플리케이션(포트 $CURRENT_PORT) 종료 중..."
+              kill $(lsof -ti:$CURRENT_PORT)
+            fi
+            
+            # 현재 포트 기록
+            echo "$TARGET_PORT" > /home/ubuntu/group-wise/current_port.txt
+            
+            echo "무중단 배포 완료!"
