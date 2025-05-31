@@ -2,8 +2,10 @@ package wj.flab.group_wise.service.event;
 
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 import wj.flab.group_wise.domain.Notification;
 import wj.flab.group_wise.domain.Notification.DeliveryChannel;
 import wj.flab.group_wise.domain.Notification.NotificationType;
@@ -21,7 +23,8 @@ public class GroupPurchaseEventListener {
 
     private final NotificationService notificationService;
 
-    @EventListener
+    @Async("notificationTaskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleGroupPurchaseStartedEvent(GroupPurchaseStartedEvent event) {
 
         GroupPurchase groupPurchase = event.getGroupPurchase();
@@ -39,7 +42,8 @@ public class GroupPurchaseEventListener {
         );
     }
 
-    @EventListener
+    @Async("notificationTaskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleMinimumParticipantsMetEvent(MinimumParticipantsMetEvent event) {
         GroupPurchase groupPurchase = event.getGroupPurchase();
         Long groupPurchaseId = groupPurchase.getId();
@@ -75,12 +79,14 @@ public class GroupPurchaseEventListener {
     }
 
     // 최소 인원 미달 상태 알림 처리
-    @EventListener
+    @Async("notificationTaskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleMinimumParticipantsUnmet(MinimumParticipantsUnmetEvent event) {
         // todo : 공동구매별로 이전에 최소 인원수 달성했었는지 여부를 확인할 수 있는 필드 추가가 필요함
     }
 
-    @EventListener
+    @Async("notificationTaskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleGroupPurchaseSuccessEvent(GroupPurchaseSuccessEvent event) {
         GroupPurchase groupPurchase = event.getGroupPurchase();
         Long groupPurchaseId = groupPurchase.getId();
@@ -115,7 +121,8 @@ public class GroupPurchaseEventListener {
         // 주문 생성 로직 추가
     }
 
-    @EventListener
+    @Async("notificationTaskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleGroupPurchaseFailureEvent(GroupPurchaseFailureEvent event) {
         GroupPurchase groupPurchase = event.getGroupPurchase();
         Long groupPurchaseId = groupPurchase.getId();
