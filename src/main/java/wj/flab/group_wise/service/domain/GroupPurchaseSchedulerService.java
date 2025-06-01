@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase.Status;
 import wj.flab.group_wise.domain.groupPurchase.event.GroupPurchaseFailureEvent;
@@ -16,6 +17,7 @@ import wj.flab.group_wise.service.event.GroupPurchaseEventPublisher;
 @Service
 @RequiredArgsConstructor
 @EnableScheduling
+@Transactional
 public class GroupPurchaseSchedulerService {
 
     private final GroupPurchaseRepository groupPurchaseRepository;

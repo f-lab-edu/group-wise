@@ -1,12 +1,14 @@
 package wj.flab.group_wise.service.event;
 
-import java.util.Set;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.event.EventListener;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 import wj.flab.group_wise.domain.Notification;
-import wj.flab.group_wise.domain.Notification.DeliveryChannel;
-import wj.flab.group_wise.domain.Notification.NotificationType;
 import wj.flab.group_wise.domain.groupPurchase.GroupPurchase;
 import wj.flab.group_wise.domain.groupPurchase.event.GroupPurchaseFailureEvent;
 import wj.flab.group_wise.domain.groupPurchase.event.GroupPurchaseStartedEvent;
@@ -17,134 +19,131 @@ import wj.flab.group_wise.service.domain.NotificationService;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class GroupPurchaseEventListener {
 
     private final NotificationService notificationService;
 
-    @EventListener
+    @Async("notificationTaskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleGroupPurchaseStartedEvent(GroupPurchaseStartedEvent event) {
 
         GroupPurchase groupPurchase = event.getGroupPurchase();
-        groupPurchase.getWishlistIds().forEach(wishlistId ->
-            notificationService.notify(
-                new Notification(
+
+        Map<Boolean, Long> results = groupPurchase.getWishlistIds().parallelStream()
+            .map(wishlistId -> notificationService.notify(
+                Notification.createStartNotification(
                     groupPurchase.getId(),
-                    NotificationType.START,
-                    "관심 공동구매 시작",
-                    "공동구매 '" + groupPurchase.getTitle() + "' 진행이 시작되었습니다.",
-                    wishlistId,
-                    Set.of(DeliveryChannel.EMAIL)
-                )
-            )
-        );
+                    groupPurchase.getTitle(),
+                    wishlistId)))
+            .collect(Collectors.groupingBy(result -> result, Collectors.counting()));
+
+        log.info("공동구매 시작 알림 발송 완료. 성공: {}명, 실패: {}명",
+            results.getOrDefault(true, 0L), results.getOrDefault(false, 0L));
     }
 
-    @EventListener
+    @Async("notificationTaskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleMinimumParticipantsMetEvent(MinimumParticipantsMetEvent event) {
         GroupPurchase groupPurchase = event.getGroupPurchase();
-        Long groupPurchaseId = groupPurchase.getId();
-        Notification.NotificationType notificationType = NotificationType.MINIMUM_MET;
-        String title = "공동구매 최소 인원 달성";
-        String message = "'" + groupPurchase.getTitle() + "' 공동구매가 최소 인원을 달성했습니다!";
 
-        groupPurchase.getParticipantIds().forEach(participantId ->
-            notificationService.notify(
-                new Notification(
-                    groupPurchaseId,
-                    notificationType,
-                    title,
-                    message,
-                    participantId,
-                    Set.of(DeliveryChannel.EMAIL)
+        // 참여자들에게 알림
+        Map<Boolean, Long> participantResults = groupPurchase.getParticipantIds().parallelStream()
+            .map(participantId -> notificationService.notify(
+                Notification.createMinimumMetNotificationForParticipant(
+                    groupPurchase.getId(),
+                    groupPurchase.getTitle(),
+                    participantId
                 )
-            )
-        );
+            ))
+            .collect(Collectors.groupingBy(result -> result, Collectors.counting()));
 
-        groupPurchase.getWishlistIds().forEach(wishlistId ->
-            notificationService.notify(
-                new Notification(
-                    groupPurchaseId,
-                    notificationType,
-                    "관심" + title,
-                    message,
-                    wishlistId,
-                    Set.of(DeliveryChannel.EMAIL)
+        // 관심 회원들에게 알림
+        Map<Boolean, Long> wishlistResults = groupPurchase.getWishlistIds().parallelStream()
+            .map(wishlistId -> notificationService.notify(
+                Notification.createMinimumMetNotificationForWishlist(
+                    groupPurchase.getId(),
+                    groupPurchase.getTitle(),
+                    wishlistId
                 )
-            )
-        );
+            ))
+            .collect(Collectors.groupingBy(result -> result, Collectors.counting()));
+
+        log.info("최소 인원 달성 알림 발송 완료. 참여자 성공: {}명, 실패: {}명 | 관심회원 성공: {}명, 실패: {}명",
+            participantResults.getOrDefault(true, 0L), participantResults.getOrDefault(false, 0L),
+            wishlistResults.getOrDefault(true, 0L), wishlistResults.getOrDefault(false, 0L));
     }
 
     // 최소 인원 미달 상태 알림 처리
-    @EventListener
+    @Async("notificationTaskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleMinimumParticipantsUnmet(MinimumParticipantsUnmetEvent event) {
         // todo : 공동구매별로 이전에 최소 인원수 달성했었는지 여부를 확인할 수 있는 필드 추가가 필요함
     }
 
-    @EventListener
+    @Async("notificationTaskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleGroupPurchaseSuccessEvent(GroupPurchaseSuccessEvent event) {
         GroupPurchase groupPurchase = event.getGroupPurchase();
-        Long groupPurchaseId = groupPurchase.getId();
-        Notification.NotificationType notificationType = NotificationType.SUCCESS;
 
-        groupPurchase.getParticipantIds().forEach(participantId ->
-            notificationService.notify(
-                new Notification(
-                    groupPurchaseId,
-                    notificationType,
-                    "공동구매 성공",
-                    "참여하신 '" + groupPurchase.getTitle() + "' 공동구매가 성공적으로 완료되었습니다.",
-                    participantId,
-                    Set.of(DeliveryChannel.EMAIL)
+        // 참여자들에게 성공 알림
+        Map<Boolean, Long> participantResults = groupPurchase.getParticipantIds().parallelStream()
+            .map(participantId -> notificationService.notify(
+                Notification.createSuccessNotificationForParticipant(
+                    groupPurchase.getId(),
+                    groupPurchase.getTitle(),
+                    participantId
                 )
-            )
-        );
+            ))
+            .collect(Collectors.groupingBy(result -> result, Collectors.counting()));
 
-        groupPurchase.getWishlistIds().forEach(wishlistId ->
-            notificationService.notify(
-                new Notification(
-                    groupPurchaseId,
-                    notificationType,
-                    "관심 " + "공동구매 성공",
-                    "관심 목록에 있는 '" + groupPurchase.getTitle() + "' 공동구매가 성공적으로 종료되었습니다.",
-                    wishlistId,
-                    Set.of(DeliveryChannel.EMAIL)
+        // 관심 회원들에게 성공 알림
+        Map<Boolean, Long> wishlistResults = groupPurchase.getWishlistIds().parallelStream()
+            .map(wishlistId -> notificationService.notify(
+                Notification.createSuccessNotificationForWishlist(
+                    groupPurchase.getId(),
+                    groupPurchase.getTitle(),
+                    wishlistId
                 )
-            )
-        );
+            ))
+            .collect(Collectors.groupingBy(result -> result, Collectors.counting()));
+
+        log.info("공동구매 성공 알림 발송 완료. 참여자 성공: {}명, 실패: {}명 | 관심회원 성공: {}명, 실패: {}명",
+            participantResults.getOrDefault(true, 0L), participantResults.getOrDefault(false, 0L),
+            wishlistResults.getOrDefault(true, 0L), wishlistResults.getOrDefault(false, 0L));
 
         // 주문 생성 로직 추가
     }
 
-    @EventListener
+    @Async("notificationTaskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleGroupPurchaseFailureEvent(GroupPurchaseFailureEvent event) {
         GroupPurchase groupPurchase = event.getGroupPurchase();
-        Long groupPurchaseId = groupPurchase.getId();
-        Notification.NotificationType notificationType = NotificationType.FAILURE;
 
-        groupPurchase.getParticipantIds().forEach(participantId ->
-            notificationService.notify(
-                new Notification(
-                    groupPurchaseId,
-                    notificationType,
-                    "공동구매 실패",
-                    "참여하신 '" + groupPurchase.getTitle() + "' 공동구매가 최소 인원을 충족하지 못해 취소되었습니다.",
-                    participantId,
-                    Set.of(DeliveryChannel.EMAIL)
+        // 참여자들에게 실패 알림
+        Map<Boolean, Long> participantResults = groupPurchase.getParticipantIds().parallelStream()
+            .map(participantId -> notificationService.notify(
+                Notification.createFailureNotificationForParticipant(
+                    groupPurchase.getId(),
+                    groupPurchase.getTitle(),
+                    participantId
                 )
-            )
-        );
+            ))
+            .collect(Collectors.groupingBy(result -> result, Collectors.counting()));
 
-        groupPurchase.getWishlistIds().forEach(wishlistId ->
-            notificationService.notify(
-                new Notification(
-                    groupPurchaseId,
-                    notificationType,
-                    "관심 공동구매 종료",
-                    "관심 목록에 있는 '" + groupPurchase.getTitle() + "' 공동구매가 최소 인원을 충족하지 못해 취소되었습니다.",
-                    wishlistId,
-                    Set.of(DeliveryChannel.EMAIL)
+        // 관심 회원들에게 실패 알림
+        Map<Boolean, Long> wishlistResults = groupPurchase.getWishlistIds().parallelStream()
+            .map(wishlistId -> notificationService.notify(
+                Notification.createFailureNotificationForWishlist(
+                    groupPurchase.getId(),
+                    groupPurchase.getTitle(),
+                    wishlistId
                 )
-            )
-        );
+            ))
+            .collect(Collectors.groupingBy(result -> result, Collectors.counting()));
+
+        log.info("공동구매 실패 알림 발송 완료. 참여자 성공: {}명, 실패: {}명 | 관심회원 성공: {}명, 실패: {}명",
+            participantResults.getOrDefault(true, 0L), participantResults.getOrDefault(false, 0L),
+            wishlistResults.getOrDefault(true, 0L), wishlistResults.getOrDefault(false, 0L));
     }
 }
