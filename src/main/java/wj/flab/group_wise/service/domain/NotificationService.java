@@ -18,12 +18,18 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
 //    private final EmailService emailService;
 
-    public void notify(Notification notification) {
-        String title = notification.getTitle();
-        String message = notification.getMessage();
-        Member member = memberService.findMember(notification.getMemberId());
+    public boolean notify(Notification notification) {
+        try {
+            String title = notification.getTitle();
+            String message = notification.getMessage();
+            Member member = memberService.findMember(notification.getMemberId());
 
 //            emailService.sendEmail(member.getEmail(), title, message);
-        notificationRepository.save(notification);
+            notificationRepository.save(notification);
+            return true;
+
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
