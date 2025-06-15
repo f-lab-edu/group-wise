@@ -3,3 +3,14 @@ spring:
     name: group-wise
   profiles:
     active: local    # 기본 프로필 설정
+
+springdoc:
+  api-docs:
+    path: /api/v3/api-docs     # JSON 스펙 경로 (내부용)
+    enabled: true
+  swagger-ui:
+    path: /docs                # ⭐ 여기가 핵심! 사용자 접속 URL
+    enabled: true
+    operationsSorter: method
+    tagsSorter: alpha
+    try-it-out-enabled: true

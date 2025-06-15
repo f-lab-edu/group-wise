@@ -30,7 +30,17 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // 인증 관련 API 허용
                 .requestMatchers("/api/auth/**").permitAll()
+
+                // API 문서 관련 경로 허용 ⭐
+                .requestMatchers("/docs/**").permitAll()              // 커스텀 docs 경로
+                .requestMatchers("/docs").permitAll()                 // 메인 docs 페이지
+                .requestMatchers("/api/v3/api-docs/**").permitAll()   // API 스펙 JSON
+                .requestMatchers("/swagger-ui/**").permitAll()        // UI 리소스들 (내부적으로 사용)
+                .requestMatchers("/webjars/**").permitAll()           // WebJars 리소스
+
+                // 나머지는 인증 필요
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
